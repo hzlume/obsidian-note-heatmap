@@ -1,5 +1,5 @@
 {
-  "name": "obsidian-note-heatmap",
+  "name": "note-heatmap",
   "version": "0.1.0",
   "description": "Obsidian Note Heatmap Plugin",
   "main": "main.js",
