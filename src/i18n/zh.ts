@@ -44,8 +44,8 @@ export const zh: Translations = {
       },
       format: {
         name: "文件格式",
-        desc: "年度笔记的文件路径格式，基于上述文件夹。格式说明：YYYY（年）。方括号 [text] 中的内容原样输出",
-        placeholder: "YYYY",
+        desc: "年度笔记的文件路径格式，基于上述文件夹。",
+        placeholder: "",
       },
     },
     daily: {
@@ -58,8 +58,8 @@ export const zh: Translations = {
       },
       format: {
         name: "文件格式",
-        desc: "每日笔记的文件路径格式，基于上述文件夹。格式说明：YYYY（年）、MM（月）、DD（日）。方括号 [text] 中的内容原样输出",
-        placeholder: "YYYY-[daily]/YYYY-MM-[daily]/YYYY-MM-DD",
+        desc: "每日笔记的文件路径格式，基于上述文件夹。",
+        placeholder: "",
       },
     },
     monthly: {
@@ -72,8 +72,8 @@ export const zh: Translations = {
       },
       format: {
         name: "文件格式",
-        desc: "月度笔记的文件路径格式，基于上述文件夹。格式说明：YYYY（年）、MM（月）。方括号 [text] 中的内容原样输出",
-        placeholder: "YYYY-[monthly]/YYYY-MM",
+        desc: "月度笔记的文件路径格式，基于上述文件夹。",
+        placeholder: "",
       },
     },
   },

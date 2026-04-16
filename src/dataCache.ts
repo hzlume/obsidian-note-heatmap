@@ -13,7 +13,7 @@ export interface YearData {
 }
 
 export interface CacheData {
-  [year: number]: YearData;
+  [year: string]: YearData;
 }
 
 function parseDateString(val: unknown): string | null {
@@ -345,7 +345,7 @@ export class DataCache extends Component {
    * 获取指定年份的数据
    */
   getYearData(year: number): YearData {
-    return this.cache[year] || {};
+    return this.cache[String(year)] || {};
   }
 
   /**

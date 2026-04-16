@@ -53,7 +53,7 @@ export function t(key: string, vars?: Record<string, string | number>): string {
   // 变量替换
   if (vars) {
     return value.replace(/\{\{(\w+)\}\}/g, (match, varName) => {
-      return vars[varName]?.toString() ?? match;
+      return vars[varName as keyof typeof vars]?.toString() ?? match;
     });
   }
   
