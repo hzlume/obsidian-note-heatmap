@@ -1,6 +1,6 @@
 # Obsidian Note Heatmap
 
-[![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22obsidian-note-heatmap%22%5D.downloads&url=https%3A%2F%2Freleases.obsidian.md%2Fstats%2Fadopter)](https://obsidian.md/plugins?id=obsidian-note-heatmap)
+[![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22note-heatmap%22%5D.downloads&url=https%3A%2F%2Freleases.obsidian.md%2Fstats%2Fadopter)](https://obsidian.md/plugins?id=note-heatmap)
 [![License](https://img.shields.io/github/license/hzlume/obsidian-note-heatmap?style=flat)](LICENSE)
 
 > Visualize your note activity with a GitHub-style heatmap. Track writing habits and discover patterns in your knowledge management.
@@ -58,7 +58,7 @@ For early access before official approval:
 ### Manual
 
 1. Download `main.js`, `manifest.json`, and `styles.css` from [releases](https://github.com/hzlume/obsidian-note-heatmap/releases/latest)
-2. Copy to `.obsidian/plugins/obsidian-note-heatmap/`
+2. Copy to `.obsidian/plugins/note-heatmap/`
 3. Enable in Settings → Community Plugins
 
 ---

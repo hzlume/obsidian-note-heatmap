@@ -10,7 +10,7 @@ if [ -z "$VAULT_PATH" ]; then
   exit 1
 fi
 
-PLUGIN_DIR="${VAULT_PATH}/.obsidian/plugins/obsidian-note-heatmap"
+PLUGIN_DIR="${VAULT_PATH}/.obsidian/plugins/note-heatmap"
 
 echo "📦 Installing Note Heatmap plugin..."
 echo "   Target: ${PLUGIN_DIR}"

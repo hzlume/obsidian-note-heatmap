@@ -15,14 +15,30 @@ const prod = (process.argv[2] === "production");
 
 // 复制 styles.css 到插件目录
 function copyStyles() {
-	const vaultPluginPath = "/Users/zhanglu/WorkBuddy/MDOrganization/obsidian-dev-sandbox/heatmap/.obsidian/plugins/obsidian-note-heatmap/";
+	// 从环境变量获取 vault 路径，或使用默认相对路径
+	const vaultPath = process.env.OBSIDIAN_VAULT_PATH || "../.obsidian";
+	const pluginId = "note-heatmap"; // 与 manifest.json 中的 id 一致
+	const vaultPluginPath = path.join(vaultPath, "plugins", pluginId);
 	const stylesSource = "./styles.css";
 	const stylesTarget = path.join(vaultPluginPath, "styles.css");
+	
+	// 确保目标目录存在
+	try {
+		if (!fs.existsSync(vaultPluginPath)) {
+			fs.mkdirSync(vaultPluginPath, { recursive: true });
+			console.log(`[build] Created plugin directory: ${vaultPluginPath}`);
+		}
+	} catch (err) {
+		console.error(`[build] Failed to create plugin directory ${vaultPluginPath}:`, err.message);
+		return;
+	}
 	
 	try {
 		if (fs.existsSync(stylesSource)) {
 			fs.copyFileSync(stylesSource, stylesTarget);
-			console.log("[build] styles.css copied to vault plugin folder");
+			console.log(`[build] styles.css copied to ${stylesTarget}`);
+		} else {
+			console.warn(`[build] styles.css source not found at ${stylesSource}`);
 		}
 	} catch (err) {
 		console.error("[build] Failed to copy styles.css:", err.message);

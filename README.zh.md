@@ -1,6 +1,6 @@
 # Obsidian Note Heatmap
 
-[![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22obsidian-note-heatmap%22%5D.downloads&url=https%3A%2F%2Freleases.obsidian.md%2Fstats%2Fadopter)](https://obsidian.md/plugins?id=obsidian-note-heatmap)
+[![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22note-heatmap%22%5D.downloads&url=https%3A%2F%2Freleases.obsidian.md%2Fstats%2Fadopter)](https://obsidian.md/plugins?id=note-heatmap)
 [![License](https://img.shields.io/github/license/hzlume/obsidian-note-heatmap?style=flat)](LICENSE)
 
 > 以 GitHub 风格热力图可视化笔记修改活动，追踪写作习惯，发现知识管理中的模式。
@@ -58,7 +58,7 @@ last-modified:
 ### 手动安装
 
 1. 从 [Releases](https://github.com/hzlume/obsidian-note-heatmap/releases/latest) 下载 `main.js`、`manifest.json` 和 `styles.css`
-2. 复制到 `.obsidian/plugins/obsidian-note-heatmap/`
+2. 复制到 `.obsidian/plugins/note-heatmap/`
 3. 在设置 → 社区插件中启用
 
 ---
