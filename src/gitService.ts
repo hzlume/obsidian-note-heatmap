@@ -1,6 +1,5 @@
-import { Notice, TFile } from "obsidian";
+import { TFile } from "obsidian";
 import type NoteHeatmapPlugin from "./main";
-import { t } from "./i18n";
 
 export interface CommitInfo {
   hash: string;
@@ -248,7 +247,7 @@ export class GitService {
     for (const path of pathsToTry) {
       try {
         return await gitManager.show(hash, path);
-      } catch (e) {
+      } catch {
         // 继续尝试下一个路径
       }
     }

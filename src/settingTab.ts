@@ -1,4 +1,4 @@
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import { App, PluginSettingTab, Setting } from "obsidian";
 import type NoteHeatmapPlugin from "./main";
 import { t, tArray } from "./i18n";
 
@@ -27,7 +27,7 @@ export class HeatmapSettingTab extends PluginSettingTab {
     const { containerEl } = this;
     containerEl.empty();
 
-    containerEl.createEl("h2", { text: t("settings.title") });
+    new Setting(containerEl).setName(t("settings.title")).setHeading();
 
     this.renderBasicSettings(containerEl);
     this.renderColorSettings(containerEl);
@@ -81,7 +81,7 @@ export class HeatmapSettingTab extends PluginSettingTab {
 
   /** 颜色设置 */
   private renderColorSettings(containerEl: HTMLElement): void {
-    containerEl.createEl("h3", { text: t("colors.title") });
+    new Setting(containerEl).setName(t("colors.title")).setHeading();
     containerEl.createEl("p", {
       text: t("colors.desc"),
       cls: "setting-item-description",
@@ -104,7 +104,7 @@ export class HeatmapSettingTab extends PluginSettingTab {
 
   /** 周期笔记设置 */
   private renderPeriodicNoteSettings(containerEl: HTMLElement): void {
-    containerEl.createEl("h3", { text: t("periodicNotes.title") });
+    new Setting(containerEl).setName(t("periodicNotes.title")).setHeading();
     this.injectStyles();
 
     const periodicTypes: PeriodicNoteType[] = ["daily", "monthly", "yearly"];
@@ -170,21 +170,9 @@ export class HeatmapSettingTab extends PluginSettingTab {
       );
   }
 
-  /** 注入样式 */
+  /** 注入样式 - 已迁移到 styles.css */
   private injectStyles(): void {
-    if (document.getElementById("heatmap-setting-styles")) return;
-    
-    const style = document.createElement("style");
-    style.id = "heatmap-setting-styles";
-    style.textContent = `
-      .heatmap-setting-group-header .setting-item-name { font-weight: 600; font-size: 15px; color: var(--text-normal); }
-      .heatmap-setting-group-header .setting-item-description { font-size: 12px; color: var(--text-muted); }
-      .heatmap-setting-subitem { padding-left: 20px; border-left: 2px solid var(--background-modifier-border); margin-left: 4px; }
-      .heatmap-setting-subitem .setting-item-name { font-size: 13px; color: var(--text-muted); }
-      .heatmap-setting-subitem + .heatmap-setting-subitem { margin-top: -8px; }
-      .heatmap-setting-group-header + .heatmap-setting-subitem { margin-top: -4px; }
-    `;
-    document.head.appendChild(style);
+    // 样式已在 styles.css 中定义，此方法保留供未来扩展使用
   }
 
   /** 首字母大写 */
@@ -194,7 +182,7 @@ export class HeatmapSettingTab extends PluginSettingTab {
 
   /** Git Diff 设置 */
   private renderGitDiffSettings(containerEl: HTMLElement): void {
-    containerEl.createEl("h3", { text: t("gitDiff.title") });
+    new Setting(containerEl).setName(t("gitDiff.title")).setHeading();
 
     const gitAvailable = this.plugin.gitService?.isGitPluginAvailable() ?? false;
     const vhdAvailable = !!(this.app as any).plugins?.plugins?.["obsidian-version-history-diff"];

@@ -1199,7 +1199,7 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    containerEl.createEl("h2", { text: t("settings.title") });
+    new import_obsidian2.Setting(containerEl).setName(t("settings.title")).setHeading();
     this.renderBasicSettings(containerEl);
     this.renderColorSettings(containerEl);
     this.renderPeriodicNoteSettings(containerEl);
@@ -1230,7 +1230,7 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
   }
   /** 颜色设置 */
   renderColorSettings(containerEl) {
-    containerEl.createEl("h3", { text: t("colors.title") });
+    new import_obsidian2.Setting(containerEl).setName(t("colors.title")).setHeading();
     containerEl.createEl("p", {
       text: t("colors.desc"),
       cls: "setting-item-description"
@@ -1247,7 +1247,7 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
   }
   /** 周期笔记设置 */
   renderPeriodicNoteSettings(containerEl) {
-    containerEl.createEl("h3", { text: t("periodicNotes.title") });
+    new import_obsidian2.Setting(containerEl).setName(t("periodicNotes.title")).setHeading();
     this.injectStyles();
     const periodicTypes = ["daily", "monthly", "yearly"];
     for (const type of periodicTypes) {
@@ -1295,21 +1295,8 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
       })
     );
   }
-  /** 注入样式 */
+  /** 注入样式 - 已迁移到 styles.css */
   injectStyles() {
-    if (document.getElementById("heatmap-setting-styles"))
-      return;
-    const style = document.createElement("style");
-    style.id = "heatmap-setting-styles";
-    style.textContent = `
-      .heatmap-setting-group-header .setting-item-name { font-weight: 600; font-size: 15px; color: var(--text-normal); }
-      .heatmap-setting-group-header .setting-item-description { font-size: 12px; color: var(--text-muted); }
-      .heatmap-setting-subitem { padding-left: 20px; border-left: 2px solid var(--background-modifier-border); margin-left: 4px; }
-      .heatmap-setting-subitem .setting-item-name { font-size: 13px; color: var(--text-muted); }
-      .heatmap-setting-subitem + .heatmap-setting-subitem { margin-top: -8px; }
-      .heatmap-setting-group-header + .heatmap-setting-subitem { margin-top: -4px; }
-    `;
-    document.head.appendChild(style);
   }
   /** 首字母大写 */
   capitalize(str) {
@@ -1318,7 +1305,7 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
   /** Git Diff 设置 */
   renderGitDiffSettings(containerEl) {
     var _a, _b, _c, _d;
-    containerEl.createEl("h3", { text: t("gitDiff.title") });
+    new import_obsidian2.Setting(containerEl).setName(t("gitDiff.title")).setHeading();
     const gitAvailable = (_b = (_a = this.plugin.gitService) == null ? void 0 : _a.isGitPluginAvailable()) != null ? _b : false;
     const vhdAvailable = !!((_d = (_c = this.app.plugins) == null ? void 0 : _c.plugins) == null ? void 0 : _d["obsidian-version-history-diff"]);
     const allDependenciesMet = gitAvailable && vhdAvailable;
@@ -1383,6 +1370,7 @@ function parseDateString(val) {
     if (typeof anyVal["toISOString"] === "function") {
       return anyVal["toISOString"]().split("T")[0];
     }
+    return null;
   }
   const str = String(val);
   const isoMatch = str.match(/^(\d{4}-\d{2}-\d{2})/);
@@ -1424,7 +1412,7 @@ var DataCache = class extends import_obsidian3.Component {
       const batchSize = 100;
       for (let i = 0; i < files.length; i += batchSize) {
         if (this.initCancelled) {
-          console.log("[NoteHeatmap] \u7F13\u5B58\u521D\u59CB\u5316\u88AB\u53D6\u6D88");
+          console.debug("[NoteHeatmap] \u7F13\u5B58\u521D\u59CB\u5316\u88AB\u53D6\u6D88");
           return;
         }
         const batch = files.slice(i, i + batchSize);
@@ -1436,7 +1424,7 @@ var DataCache = class extends import_obsidian3.Component {
         }
       }
       if (this.initCancelled) {
-        console.log("[NoteHeatmap] \u7F13\u5B58\u521D\u59CB\u5316\u88AB\u53D6\u6D88");
+        console.debug("[NoteHeatmap] \u7F13\u5B58\u521D\u59CB\u5316\u88AB\u53D6\u6D88");
         return;
       }
       this.isInitialized = true;
@@ -2013,14 +2001,14 @@ var NoteHeatmapPlugin = class extends import_obsidian4.Plugin {
       this.activateView();
     });
     this.addCommand({
-      id: "open-note-heatmap",
+      id: "open",
       name: t("commands.openView"),
       callback: () => {
         this.activateView();
       }
     });
     this.addCommand({
-      id: "refresh-note-heatmap",
+      id: "refresh",
       name: t("commands.refreshView"),
       callback: () => {
         this.refreshViews();
@@ -2029,7 +2017,6 @@ var NoteHeatmapPlugin = class extends import_obsidian4.Plugin {
     this.addSettingTab(new HeatmapSettingTab(this.app, this));
   }
   onunload() {
-    this.app.workspace.detachLeavesOfType(HEATMAP_VIEW_TYPE);
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
@@ -2078,7 +2065,7 @@ var NoteHeatmapPlugin = class extends import_obsidian4.Plugin {
     const hasGitPlugin = this.isPluginInstalled("obsidian-git");
     const hasVHDPlugin = this.isPluginInstalled("obsidian-version-history-diff");
     if (hasGitPlugin && hasVHDPlugin) {
-      console.log("[NoteHeatmap] \u68C0\u6D4B\u5230\u4F9D\u8D56\u63D2\u4EF6\u5DF2\u5B89\u88C5\uFF0C\u81EA\u52A8\u5F00\u542F Git Diff \u529F\u80FD");
+      console.debug("[NoteHeatmap] \u68C0\u6D4B\u5230\u4F9D\u8D56\u63D2\u4EF6\u5DF2\u5B89\u88C5\uFF0C\u81EA\u52A8\u5F00\u542F Git Diff \u529F\u80FD");
       this.settings.enableGitDiff = true;
       await this.saveSettings();
     }

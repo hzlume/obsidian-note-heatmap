@@ -45,7 +45,7 @@ export default class NoteHeatmapPlugin extends Plugin {
 
     // 命令：打开热力图
     this.addCommand({
-      id: "open-note-heatmap",
+      id: "open",
       name: t("commands.openView"),
       callback: () => {
         this.activateView();
@@ -54,7 +54,7 @@ export default class NoteHeatmapPlugin extends Plugin {
 
     // 命令：刷新热力图
     this.addCommand({
-      id: "refresh-note-heatmap",
+      id: "refresh",
       name: t("commands.refreshView"),
       callback: () => {
         this.refreshViews();
@@ -66,7 +66,7 @@ export default class NoteHeatmapPlugin extends Plugin {
   }
 
   onunload(): void {
-    this.app.workspace.detachLeavesOfType(HEATMAP_VIEW_TYPE);
+    // 不需要 detach leaves，Obsidian 会自动清理
   }
 
   async loadSettings(): Promise<void> {
@@ -129,7 +129,7 @@ export default class NoteHeatmapPlugin extends Plugin {
     const hasVHDPlugin = this.isPluginInstalled('obsidian-version-history-diff');
 
     if (hasGitPlugin && hasVHDPlugin) {
-      console.log('[NoteHeatmap] 检测到依赖插件已安装，自动开启 Git Diff 功能');
+      console.debug('[NoteHeatmap] 检测到依赖插件已安装，自动开启 Git Diff 功能');
       this.settings.enableGitDiff = true;
       await this.saveSettings();
     }

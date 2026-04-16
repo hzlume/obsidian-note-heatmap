@@ -26,6 +26,8 @@ function parseDateString(val: unknown): string | null {
     if (typeof anyVal["toISOString"] === "function") {
       return (anyVal["toISOString"] as () => string)().split("T")[0];
     }
+    // 普通对象无法转换为有效日期字符串
+    return null;
   }
   const str = String(val);
   
@@ -90,7 +92,7 @@ export class DataCache extends Component {
       for (let i = 0; i < files.length; i += batchSize) {
         // 检查是否被取消
         if (this.initCancelled) {
-          console.log("[NoteHeatmap] 缓存初始化被取消");
+          console.debug("[NoteHeatmap] 缓存初始化被取消");
           return;
         }
 
@@ -106,7 +108,7 @@ export class DataCache extends Component {
 
       // 检查是否被取消
       if (this.initCancelled) {
-        console.log("[NoteHeatmap] 缓存初始化被取消");
+        console.debug("[NoteHeatmap] 缓存初始化被取消");
         return;
       }
 

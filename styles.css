@@ -276,3 +276,34 @@
   pointer-events: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+
+/* Setting Tab Styles */
+.heatmap-setting-group-header .setting-item-name {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-normal);
+}
+
+.heatmap-setting-group-header .setting-item-description {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.heatmap-setting-subitem {
+  padding-left: 20px;
+  border-left: 2px solid var(--background-modifier-border);
+  margin-left: 4px;
+}
+
+.heatmap-setting-subitem .setting-item-name {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.heatmap-setting-subitem + .heatmap-setting-subitem {
+  margin-top: -8px;
+}
+
+.heatmap-setting-group-header + .heatmap-setting-subitem {
+  margin-top: -4px;
+}
