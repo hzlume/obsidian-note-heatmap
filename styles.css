@@ -1,0 +1,278 @@
+/* Obsidian Note Heatmap Plugin Styles */
+
+/* CSS Variables for dynamic values */
+.heatmap-plugin-wrapper {
+  --heatmap-box-size: 12px;
+  --heatmap-gap: 3px;
+  --heatmap-column-width: 15px;
+}
+
+/* Month container */
+.heatmap-plugin-wrapper .month-container {
+  position: relative;
+  height: 20px;
+  margin-left: 38px;
+  margin-bottom: 2px;
+}
+
+/* Month name label */
+.heatmap-plugin-wrapper .m-name {
+  position: absolute;
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  cursor: pointer;
+  padding: 2px 0;
+  border-radius: 3px;
+  transition: background 0.1s;
+}
+
+.heatmap-plugin-wrapper .m-name:hover {
+  background-color: var(--background-modifier-hover);
+}
+
+/* Calendar body */
+.heatmap-plugin-wrapper .cal-body {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+/* Week labels */
+.heatmap-plugin-wrapper .w-labs {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 102px;
+  width: 30px;
+  margin-right: 8px;
+}
+
+.heatmap-plugin-wrapper .w-lab {
+  font-size: 10px;
+  color: var(--text-muted);
+  height: 12px;
+  line-height: 12px;
+}
+
+/* Calendar grid */
+.heatmap-plugin-wrapper .cal-grid {
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  height: 102px;
+  gap: var(--heatmap-gap);
+  align-content: flex-start;
+}
+
+/* Heat box */
+.heatmap-plugin-wrapper .h-box {
+  width: var(--heatmap-box-size);
+  height: var(--heatmap-box-size);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+.heatmap-plugin-wrapper .h-box:hover {
+  outline: 1.5px solid var(--interactive-accent);
+  z-index: 10;
+}
+
+.heatmap-plugin-wrapper .h-box.active {
+  outline: 2px solid var(--interactive-accent);
+}
+
+.heatmap-plugin-wrapper .h-box.out-of-year {
+  opacity: 0.25;
+}
+
+/* Scroll container */
+.heatmap-plugin-wrapper .heatmap-scroll-container {
+  overflow-x: auto;
+  padding-bottom: 5px;
+}
+
+.heatmap-plugin-wrapper .heatmap-scroll-container::-webkit-scrollbar {
+  height: 6px;
+}
+
+.heatmap-plugin-wrapper .heatmap-scroll-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.heatmap-plugin-wrapper .heatmap-scroll-container::-webkit-scrollbar-thumb {
+  background: var(--background-modifier-border);
+  border-radius: 3px;
+}
+
+/* Heatmap section */
+.heatmap-plugin-wrapper .heatmap-section {
+  min-width: fit-content;
+}
+
+/* Result panel */
+.heatmap-plugin-wrapper #res-panel {
+  width: 100%;
+  padding: 15px;
+  background: var(--background-secondary);
+  border-radius: 8px;
+  font-size: 13px;
+  border: 1px solid var(--background-modifier-border);
+  max-height: 480px;
+  overflow-y: auto;
+  box-sizing: border-box;
+}
+
+.heatmap-plugin-wrapper .res-item {
+  margin-bottom: 6px;
+  list-style: disc;
+  margin-left: 20px;
+  color: var(--text-normal);
+}
+
+.heatmap-plugin-wrapper .res-link {
+  color: var(--link-color);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.heatmap-plugin-wrapper .res-link:hover {
+  text-decoration: underline;
+}
+
+/* Close button */
+.heatmap-plugin-wrapper .close-btn {
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  width: 20px;
+  height: 20px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s ease;
+}
+
+.heatmap-plugin-wrapper .close-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+/* Title left section */
+.heatmap-plugin-wrapper .title-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Mod count badge */
+.heatmap-plugin-wrapper .mod-count {
+  font-size: 11px;
+  color: var(--text-muted);
+  font-weight: normal;
+}
+
+/* Header */
+.heatmap-plugin-wrapper .heatmap-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.heatmap-plugin-wrapper .heatmap-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-normal);
+}
+
+/* Refresh button */
+.heatmap-plugin-wrapper .heatmap-refresh-btn {
+  background: transparent;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.1s;
+}
+
+.heatmap-plugin-wrapper .heatmap-refresh-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+/* Year navigation */
+.heatmap-plugin-wrapper .year-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.heatmap-plugin-wrapper .year-nav-btn {
+  background: transparent;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: all 0.1s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 24px;
+}
+
+.heatmap-plugin-wrapper .year-nav-btn:hover {
+  background: var(--background-modifier-hover);
+  color: var(--text-normal);
+}
+
+.heatmap-plugin-wrapper .year-nav-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Year display */
+.heatmap-plugin-wrapper .year-display {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-normal);
+  min-width: 50px;
+  text-align: center;
+  cursor: pointer;
+  border-radius: 4px;
+  padding: 2px 8px;
+  transition: background 0.1s;
+}
+
+.heatmap-plugin-wrapper .year-display:hover {
+  background: var(--background-modifier-hover);
+}
+
+.heatmap-plugin-wrapper .year-display.clickable {
+  color: var(--link-color);
+}
+
+/* Tooltip */
+.heatmap-tooltip {
+  position: fixed;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 9999;
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
