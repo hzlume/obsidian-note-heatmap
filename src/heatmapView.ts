@@ -28,31 +28,18 @@ export class HeatmapView extends ItemView {
    * 格式化日期路径
    * 支持：YYYY（年）、MM（月）、DD（日）
    * 方括号 [text] 中的内容原样输出
+   * 使用 Moment.js 处理，与 Periodic Notes 保持一致
    */
   private formatDatePath(format: string, year: string | number, month: string | number, day?: string | number): string {
-    // 确保月份和日期是两位数（补零）
-    const yearStr = String(year);
-    const monthStr = String(month).padStart(2, "0");
-    const dayStr = day !== undefined ? String(day).padStart(2, "0") : undefined;
-
-    // 先处理方括号中的内容 - 将 [text] 替换为占位符保护起来
-    const bracketPlaceholders: string[] = [];
-    let protectedFormat = format.replace(/\[([^\]]+)\]/g, (match, content) => {
-      bracketPlaceholders.push(content);
-      return `\u0000${bracketPlaceholders.length - 1}\u0000`;
-    });
-
-    // 替换日期格式
-    protectedFormat = protectedFormat.replace(/YYYY/g, yearStr);
-    protectedFormat = protectedFormat.replace(/MM/g, monthStr);
-    if (dayStr !== undefined) {
-      protectedFormat = protectedFormat.replace(/DD/g, dayStr);
+    const m = window.moment();
+    m.year(Number(year));
+    m.month(Number(month) - 1); // Moment.js 月份是 0-indexed
+    if (day !== undefined) {
+      m.date(Number(day));
     }
 
-    // 恢复方括号中的内容
-    return protectedFormat.replace(/\u0000(\d+)\u0000/g, (match, index) => {
-      return bracketPlaceholders[parseInt(index)];
-    });
+    // Moment.js 自动处理方括号保护
+    return m.format(format);
   }
 
   getViewType(): string {
@@ -84,7 +71,7 @@ export class HeatmapView extends ItemView {
     }
   }
 
-  async onClose(): Promise<void> {
+  onClose(): void {
     if (this.tooltipDiv) {
       this.tooltipDiv.remove();
       this.tooltipDiv = null;
@@ -104,7 +91,7 @@ export class HeatmapView extends ItemView {
         clearTimeout(this.renderDebounceTimer);
       }
       this.renderDebounceTimer = window.setTimeout(() => {
-        this.doRender();
+        void this.doRender();
       }, 100);
       return;
     }
@@ -114,16 +101,16 @@ export class HeatmapView extends ItemView {
       clearTimeout(this.renderDebounceTimer);
     }
     this.renderDebounceTimer = window.setTimeout(() => {
-      this.doRender();
+      void this.doRender();
     }, 50);
   }
 
-  private async doRender(): Promise<void> {
+  private doRender(): void {
     if (this.isRendering) return;
     this.isRendering = true;
 
     try {
-      await this.performRender();
+      this.performRender();
     } catch (err) {
       console.error("[NoteHeatmap] Render failed:", err);
     } finally {
@@ -131,11 +118,10 @@ export class HeatmapView extends ItemView {
     }
   }
 
-  private async performRender(): Promise<void> {
+  private performRender(): void {
     const container = this.containerEl.children[1] as HTMLElement;
     container.empty();
-    container.style.padding = "20px";
-    container.style.overflowY = "auto";
+    container.addClass("note-heatmap-container");
 
     const year = this.currentYear;
     const { colors } = this.plugin.settings;
@@ -159,8 +145,7 @@ export class HeatmapView extends ItemView {
 
   /** 创建包装容器 */
   private createWrapper(container: HTMLElement): HTMLElement {
-    const wrapper = container.createDiv({ cls: "heatmap-plugin-wrapper" });
-    wrapper.style.cssText = "display:flex;flex-direction:column;gap:10px;width:100%;max-width:850px;";
+    const wrapper = container.createDiv({ cls: "heatmap-plugin-wrapper note-heatmap-flex-col note-heatmap-width-full" });
     return wrapper;
   }
 
@@ -195,7 +180,7 @@ export class HeatmapView extends ItemView {
 
     for (let i = 0; i < 12; i++) {
       const mDiv = monthContainer.createDiv({ cls: "m-name" });
-      mDiv.style.left = `${monthOffsets[i]}px`;
+      mDiv.setCssStyles({ left: `${monthOffsets[i]}px` });
       mDiv.setText(monthNames[i]);
       mDiv.dataset.monthIndex = String(i);
       monthElements.push(mDiv);
@@ -216,9 +201,9 @@ export class HeatmapView extends ItemView {
 
   /** 渲染结果面板（初始状态） */
   private renderResultPanel(wrapper: HTMLElement): HTMLElement {
-    const resPanel = wrapper.createDiv();
-    resPanel.id = "res-panel";
-    resPanel.innerHTML = `<span style="color:var(--text-muted);font-style:italic;">${t("resultPanel.hint")}</span>`;
+    const resPanel = wrapper.createDiv({ attr: { id: "res-panel" } });
+    const hint = resPanel.createEl("span", { cls: "note-heatmap-empty" });
+    hint.setText(t("resultPanel.hint"));
     return resPanel;
   }
 
@@ -251,10 +236,14 @@ export class HeatmapView extends ItemView {
       yearDisplay.addClass("clickable");
       yearDisplay.title = t("view.header.openYearlyNote", { year: String(year) });
       this.bindYearlyNoteHover(yearDisplay, year);
-      yearDisplay.addEventListener("click", () => this.openPeriodicNote("yearly", year));
+      yearDisplay.addEventListener("click", () => {
+        void this.openPeriodicNote("yearly", year);
+      });
     }
 
-    refreshBtn.addEventListener("click", () => this.plugin.forceRefresh());
+    refreshBtn.addEventListener("click", () => {
+      void this.plugin.forceRefresh();
+    });
   }
 
   /** 绑定年度笔记悬停预览 */
@@ -309,8 +298,9 @@ export class HeatmapView extends ItemView {
     resPanel: HTMLElement
   ): void {
     calGrid.addEventListener("click", (e) => {
-      const box = (e.target as HTMLElement).closest(".h-box") as HTMLElement | null;
-      if (!box || !box.dataset.date) return;
+      const target = e.target as HTMLElement;
+      const box = target.closest(".h-box");
+      if (!(box instanceof HTMLElement) || !box.dataset.date) return;
 
       calGrid.querySelectorAll(".h-box.active").forEach(b => b.removeClass("active"));
       box.addClass("active");
@@ -325,26 +315,27 @@ export class HeatmapView extends ItemView {
   private showTooltip(el: HTMLElement, text: string): void {
     if (!this.tooltipDiv) {
       this.tooltipDiv = document.createElement("div");
-      this.tooltipDiv.className = "heatmap-tooltip";
+      this.tooltipDiv.className = "heatmap-tooltip note-heatmap-tooltip";
       document.body.appendChild(this.tooltipDiv);
     }
     this.tooltipDiv.textContent = text;
     const rect = el.getBoundingClientRect();
-    this.tooltipDiv.style.left = rect.left + "px";
-    this.tooltipDiv.style.top = (rect.bottom + 5) + "px";
-    this.tooltipDiv.style.display = "block";
+    this.tooltipDiv.setCssStyles({
+      left: `${rect.left}px`,
+      top: `${rect.bottom + 5}px`
+    });
+    this.tooltipDiv.addClass("visible");
   }
 
   /** 隐藏 tooltip */
   private hideTooltip(): void {
-    if (this.tooltipDiv) this.tooltipDiv.style.display = "none";
+    if (this.tooltipDiv) this.tooltipDiv.removeClass("visible");
   }
 
   /** 重置结果面板 */
   private resetPanel(resPanel: HTMLElement): void {
     resPanel.empty();
-    const span = resPanel.createEl("span");
-    span.style.cssText = "color:var(--text-muted);font-style:italic;";
+    const span = resPanel.createEl("span", { cls: "note-heatmap-empty" });
     span.setText(t("resultPanel.hint"));
   }
 
@@ -383,7 +374,7 @@ export class HeatmapView extends ItemView {
       // 如果有提交数据，设置选中状态
       if (diff?.commits && diff.commits.length > 0) {
         setTimeout(() => {
-          selectCommitsInVHD(diff!.commits, diff!.previousCommit);
+          selectCommitsInVHD(diff.commits, diff.previousCommit);
         }, 500);
       }
     } catch (err) {
@@ -398,15 +389,15 @@ export class HeatmapView extends ItemView {
     a.textContent = text;
     a.setAttribute("data-href", path);
     a.setAttribute("href", path);
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      const useNewLeaf = (e as MouseEvent).ctrlKey || (e as MouseEvent).metaKey;
-      this.app.workspace.openLinkText(path, "", useNewLeaf);
+    a.addEventListener("click", (mouseEvt) => {
+      mouseEvt.preventDefault();
+      const useNewLeaf = mouseEvt.ctrlKey || mouseEvt.metaKey;
+      void this.app.workspace.openLinkText(path, "", useNewLeaf);
     });
-    a.addEventListener("mouseover", (e) => {
-      const target = e.target as HTMLElement;
+    a.addEventListener("mouseover", (evt) => {
+      const target = evt.target as HTMLElement;
       this.app.workspace.trigger("hover-link", {
-        event: e,
+        event: evt,
         source: "preview",
         hoverParent: target,
         targetEl: target,
@@ -447,12 +438,10 @@ export class HeatmapView extends ItemView {
     });
 
     // 创建带高度限制的列表容器
-    const listContainer = resPanel.createDiv();
-    listContainer.style.cssText = "max-height:300px;overflow-y:auto;";
+    const listContainer = resPanel.createDiv({ cls: "note-heatmap-list-container" });
 
     // 渲染列表容器
-    const ul = listContainer.createEl("ul");
-    ul.style.cssText = "margin:0;padding:0;";
+    const ul = listContainer.createEl("ul", { cls: "note-heatmap-list" });
 
     // 渲染列表函数
     const renderList = (search: string, key: 'name' | 'modifiedTime' | 'activeDays', desc: boolean) => {
@@ -506,9 +495,7 @@ export class HeatmapView extends ItemView {
     monthStr: string,
     dayStr?: string
   ): void {
-    const titleDiv = resPanel.createDiv();
-    titleDiv.style.cssText =
-      "display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--background-modifier-border);margin-bottom:12px;font-weight:bold;";
+    const titleDiv = resPanel.createDiv({ cls: "note-heatmap-title-row" });
 
     const leftDiv = titleDiv.createDiv({ cls: "title-left" });
 
@@ -548,8 +535,7 @@ export class HeatmapView extends ItemView {
 
   /** 渲染空消息 */
   private renderEmptyMessage(resPanel: HTMLElement, message: string): void {
-    const emptyDiv = resPanel.createDiv();
-    emptyDiv.style.color = "var(--text-muted)";
+    const emptyDiv = resPanel.createDiv({ cls: "note-heatmap-empty" });
     emptyDiv.setText(message);
   }
 
@@ -569,21 +555,18 @@ export class HeatmapView extends ItemView {
     };
 
     // 搜索框
-    const searchDiv = resPanel.createDiv();
-    searchDiv.style.cssText = "margin-bottom:12px;";
+    const searchDiv = resPanel.createDiv({ cls: "note-heatmap-search-container" });
 
-    const searchInput = searchDiv.createEl("input");
+    const searchInput = searchDiv.createEl("input", { cls: "note-heatmap-search-input" });
     searchInput.type = "text";
     searchInput.placeholder = t("resultPanel.searchPlaceholder");
-    searchInput.style.cssText = "width:100%;padding:6px 10px;border:1px solid var(--background-modifier-border);border-radius:4px;background:var(--background-primary);color:var(--text-normal);font-size:13px;box-sizing:border-box;";
     searchInput.addEventListener("input", (e) => {
       state.searchQuery.value = (e.target as HTMLInputElement).value;
       onChange();
     });
 
     // 排序控件
-    const sortDiv = resPanel.createDiv();
-    sortDiv.style.cssText = "display:flex;gap:12px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--background-modifier-border);font-size:12px;";
+    const sortDiv = resPanel.createDiv({ cls: "note-heatmap-sort-container" });
 
     const sortButtons: Map<string, HTMLButtonElement> = new Map();
 
@@ -592,14 +575,16 @@ export class HeatmapView extends ItemView {
         const isActive = state.sortKey.value === key;
         const arrow = isActive ? (state.sortDesc.value ? "↓" : "↑") : "";
         btn.setText(`${t(`resultPanel.sortBy.${key === 'modifiedTime' ? 'lastModified' : key}`)} ${arrow}`.trim());
-        btn.style.color = isActive ? "var(--text-normal)" : "var(--text-muted)";
-        btn.style.fontWeight = isActive ? "bold" : "normal";
+        if (isActive) {
+          btn.addClass("active");
+        } else {
+          btn.removeClass("active");
+        }
       });
     };
 
     const createSortBtn = (key: 'name' | 'modifiedTime' | 'activeDays') => {
-      const btn = sortDiv.createEl("button");
-      btn.style.cssText = "background:transparent;border:none;padding:4px 8px;cursor:pointer;border-radius:4px;font-size:12px;";
+      const btn = sortDiv.createEl("button", { cls: "note-heatmap-sort-btn" });
       sortButtons.set(key, btn);
 
       btn.addEventListener("click", () => {
@@ -664,41 +649,35 @@ export class HeatmapView extends ItemView {
     const lastDayOfMonth = new Date(year, monthIndex + 1, 0);
 
     notes.forEach((note) => {
-      const li = ul.createEl("li", { cls: "res-item" });
-      li.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:8px;";
+      const li = ul.createEl("li", { cls: "res-item note-heatmap-list-item" });
 
-      const leftDiv = li.createDiv();
-      leftDiv.style.cssText = "display:flex;align-items:center;gap:8px;flex:1;min-width:0;";
+      const leftDiv = li.createDiv({ cls: "note-heatmap-list-item-left" });
 
       // 笔记链接
       const createdDate = note.createdDate ? new Date(note.createdDate) : null;
       const isNew = createdDate !== null && createdDate >= firstDayOfMonth && createdDate <= lastDayOfMonth;
       const displayName = isNew ? `🆕 ${note.name}` : note.name;
       const a = this.createInternalLink(displayName, note.path);
-      a.style.cssText = "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+      a.addClass("note-heatmap-link-text");
       leftDiv.appendChild(a);
 
       // 修改天数
       const modDays = noteModDaysMap.get(note.path) || 1;
-      const daysSpan = leftDiv.createEl("span");
-      daysSpan.style.cssText = "color:var(--text-muted);font-size:11px;white-space:nowrap;flex-shrink:0;background:var(--background-secondary);padding:1px 6px;border-radius:3px;";
+      const daysSpan = leftDiv.createEl("span", { cls: "note-heatmap-days-badge" });
       daysSpan.setText(t("resultPanel.days", { count: modDays }));
 
       // 最后修改时间
       const modTime = new Date(note.modifiedTime);
       const timeStr = `${String(modTime.getMonth() + 1).padStart(2, "0")}-${String(modTime.getDate()).padStart(2, "0")} ${String(modTime.getHours()).padStart(2, "0")}:${String(modTime.getMinutes()).padStart(2, "0")}`;
-      const timeSpan = leftDiv.createEl("span");
-      timeSpan.style.cssText = "color:var(--text-muted);font-size:11px;white-space:nowrap;flex-shrink:0;";
+      const timeSpan = leftDiv.createEl("span", { cls: "note-heatmap-time" });
       timeSpan.setText(timeStr);
 
       // VHD 按钮
       if (this.plugin.settings.enableGitDiff) {
-        const vhdBtn = li.createEl("button", { cls: "diff-btn", text: t("resultPanel.vhdButton") });
-        vhdBtn.style.cssText =
-          "font-size:11px;padding:2px 8px;background:var(--interactive-accent);color:var(--text-on-accent);border:none;border-radius:3px;cursor:pointer;flex-shrink:0;";
-        vhdBtn.addEventListener("click", async (e) => {
+        const vhdBtn = li.createEl("button", { cls: "diff-btn note-heatmap-vhd-btn", text: t("resultPanel.vhdButton") });
+        vhdBtn.addEventListener("click", (e) => {
           e.stopPropagation();
-          await onVhdClick(note);
+          void onVhdClick(note);
         });
       }
     });
@@ -807,7 +786,7 @@ export class HeatmapView extends ItemView {
       }
 
       const box = calGrid.createDiv({ cls: "h-box" });
-      box.style.backgroundColor = isInYear ? color : colors[0];
+      box.setCssStyles({ backgroundColor: isInYear ? color : colors[0] });
       if (!isInYear) {
         box.addClass("out-of-year");
       }
@@ -842,8 +821,7 @@ export class HeatmapView extends ItemView {
       return;
     }
 
-    const ul = resPanel.createEl("ul");
-    ul.style.cssText = "margin:0;padding:0;";
+    const ul = resPanel.createEl("ul", { cls: "note-heatmap-list" });
 
     // 去重并按修改时间倒序排序
     const uniqueNotes = this.deduplicateAndSortNotes(notes);
@@ -869,12 +847,10 @@ export class HeatmapView extends ItemView {
     ul.empty();
 
     notes.forEach((n) => {
-      const li = ul.createEl("li", { cls: "res-item" });
-      li.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:8px;";
+      const li = ul.createEl("li", { cls: "res-item note-heatmap-list-item" });
 
       // 左侧区域：笔记名 + 时间
-      const leftDiv = li.createDiv();
-      leftDiv.style.cssText = "display:flex;align-items:center;gap:8px;flex:1;min-width:0;";
+      const leftDiv = li.createDiv({ cls: "note-heatmap-list-item-left" });
 
       const isNew = n.createdDate === dateStr;
       const displayName = isNew ? `🆕 ${n.name}` : n.name;
@@ -882,18 +858,15 @@ export class HeatmapView extends ItemView {
       leftDiv.appendChild(a);
 
       // 显示最后修改时间
-      const timeSpan = leftDiv.createEl("span");
-      timeSpan.style.cssText = "color:var(--text-muted);font-size:11px;white-space:nowrap;flex-shrink:0;";
+      const timeSpan = leftDiv.createEl("span", { cls: "note-heatmap-time" });
       const date = new Date(n.modifiedTime);
       timeSpan.textContent = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
       if (this.plugin.settings.enableGitDiff) {
-        const vhdBtn = li.createEl("button", { cls: "diff-btn", text: t("resultPanel.vhdButton") });
-        vhdBtn.style.cssText =
-          "font-size:11px;padding:2px 8px;background:var(--interactive-accent);color:var(--text-on-accent);border:none;border-radius:3px;cursor:pointer;";
-        vhdBtn.addEventListener("click", async (e) => {
+        const vhdBtn = li.createEl("button", { cls: "diff-btn note-heatmap-vhd-btn", text: t("resultPanel.vhdButton") });
+        vhdBtn.addEventListener("click", (e) => {
           e.stopPropagation();
-          await this.openInVHD(n, dateStr);
+          void this.openInVHD(n, dateStr);
         });
       }
     });

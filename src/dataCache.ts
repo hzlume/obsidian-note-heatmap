@@ -29,6 +29,8 @@ function parseDateString(val: unknown): string | null {
     // 普通对象无法转换为有效日期字符串
     return null;
   }
+  // 只处理 string 和 number，其他类型无法转换为有效日期
+  if (typeof val !== "string" && typeof val !== "number") return null;
   const str = String(val);
   
   // 支持 ISO 8601: 2026-04-14T10:30:00 或 2026-04-14
@@ -204,9 +206,18 @@ export class DataCache extends Component {
     const fm = cache?.frontmatter;
     if (!fm) return;
 
-    let rawDates = fm[this.targetField];
+    const rawDates: unknown = fm[this.targetField];
     if (!rawDates) return;
-    if (!Array.isArray(rawDates)) rawDates = [rawDates];
+
+    // 类型守卫：将 unknown 窄化为 string[]
+    let dates: string[];
+    if (typeof rawDates === "string") {
+      dates = [rawDates];
+    } else if (Array.isArray(rawDates) && rawDates.every((item) => typeof item === "string")) {
+      dates = rawDates;
+    } else {
+      return;
+    }
 
     // 获取创建日期（使用配置的创建时间字段）
     let createdDate: string | null = null;
@@ -218,28 +229,20 @@ export class DataCache extends Component {
       createdDate = new Date(file.stat.ctime).toISOString().split("T")[0];
     }
 
-    for (const d of rawDates) {
+    for (const d of dates) {
       if (!d) continue;
       let dateStr: string;
       let modifiedTime: number;
-      try {
-        const str = String(d);
-        // 直接从字符串提取日期部分，避免时区转换问题
-        // 支持: 2026-04-15, 2026-04-15T10:30:00, 2026-04-15T10:30:00Z
-        const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-        if (!isoMatch) continue;
-        const [, year, month, day] = isoMatch;
-        dateStr = `${year}-${month}-${day}`;
-        // 使用原始字符串解析时间戳（用于排序）
-        const dateObj = new Date(str);
-        if (isNaN(dateObj.getTime())) continue;
-        modifiedTime = dateObj.getTime();
-      } catch {
-        continue;
-      }
-
-      const year = parseInt(dateStr.split("-")[0]);
-      if (isNaN(year)) continue;
+      // 直接从字符串提取日期部分，避免时区转换问题
+      // 支持: 2026-04-15, 2026-04-15T10:30:00, 2026-04-15T10:30:00Z
+      const isoMatch = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (!isoMatch) continue;
+      const [, year, month, day] = isoMatch;
+      dateStr = `${year}-${month}-${day}`;
+      // 使用原始字符串解析时间戳（用于排序）
+      const dateObj = new Date(d);
+      if (isNaN(dateObj.getTime())) continue;
+      modifiedTime = dateObj.getTime();
 
       // 初始化年份缓存
       if (!this.cache[year]) {
@@ -401,7 +404,7 @@ export class DataCache extends Component {
       this.cache = {};
       this.isInitialized = false;
       this.initPromise = null;
-      this.initialize();
+      void this.initialize();
     }
   }
 

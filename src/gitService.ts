@@ -1,4 +1,4 @@
-import { TFile } from "obsidian";
+import { TFile, Plugin } from "obsidian";
 import type NoteHeatmapPlugin from "./main";
 
 export interface CommitInfo {
@@ -18,12 +18,31 @@ export interface DayDiffResult {
   previousCommit?: CommitInfo;
 }
 
+/** Obsidian Git 插件的 gitManager 接口 */
+interface GitManager {
+  log(filePath: string, limit?: number): Promise<GitLogEntry[]>;
+  show(commitHash: string, filePath: string): Promise<string>;
+}
+
+/** Obsidian Git 插件接口 */
+interface ObsidianGitPlugin extends Plugin {
+  gitManager?: GitManager;
+}
+
+/** Git 日志条目 */
+interface GitLogEntry {
+  hash: string;
+  date: string;
+  message: string;
+  fileName?: string;
+}
+
 /**
  * Git 服务 - 使用 Obsidian Git 插件 API
  * 无缓存设计：每次查询直接调用 API，避免过期数据和内存占用
  */
 export class GitService {
-  private gitPlugin: any = null;
+  private gitPlugin: ObsidianGitPlugin | null = null;
 
   constructor(private plugin: NoteHeatmapPlugin) {
     this.findGitPlugin();
@@ -34,10 +53,7 @@ export class GitService {
    */
   private findGitPlugin(): void {
     try {
-      const plugins = (this.plugin.app as any).plugins?.plugins;
-      if (plugins?.["obsidian-git"]) {
-        this.gitPlugin = plugins["obsidian-git"];
-      }
+      this.gitPlugin = this.plugin.app.plugins.getPlugin("obsidian-git") as ObsidianGitPlugin | null;
     } catch {
       // 忽略错误
     }
@@ -58,9 +74,9 @@ export class GitService {
    * 获取 gitManager 实例
    * 提取公共模式：获取 + 空值检查
    */
-  private getGitManager(): any | null {
+  private getGitManager(): GitManager | null {
     if (!this.isGitPluginAvailable()) return null;
-    return this.gitPlugin.gitManager || null;
+    return this.gitPlugin?.gitManager || null;
   }
 
   /**
@@ -131,7 +147,7 @@ export class GitService {
    * 一次 log 查询同时获取两个结果，避免重复 API 调用
    */
   private async getCommitsInRange(
-    gitManager: any,
+    gitManager: GitManager,
     file: TFile,
     startTime: Date,
     endTime: Date
@@ -183,7 +199,7 @@ export class GitService {
    * 支持文件重命名/移动场景
    */
   private async getDiffBetweenCommits(
-    gitManager: any,
+    gitManager: GitManager,
     file: TFile,
     fromHash: string,
     toHash: string,
@@ -241,7 +257,7 @@ export class GitService {
   /**
    * 尝试用不同路径获取文件内容
    */
-  private async tryShow(gitManager: any, hash: string, preferredPath: string | null, fallbackPath: string): Promise<string> {
+  private async tryShow(gitManager: GitManager, hash: string, preferredPath: string | null, fallbackPath: string): Promise<string> {
     const pathsToTry = preferredPath ? [preferredPath, fallbackPath] : [fallbackPath];
     
     for (const path of pathsToTry) {

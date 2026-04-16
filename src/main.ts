@@ -25,9 +25,9 @@ export default class NoteHeatmapPlugin extends Plugin {
     // 确保 metadataCache 已经解析完所有文件，其他插件已加载
     this.app.workspace.onLayoutReady(() => {
       // 检测依赖插件，如果都安装了则默认开启 git diff
-      this.checkAndAutoEnableGitDiff();
+      void this.checkAndAutoEnableGitDiff();
 
-      this.dataCache.initialize().catch((err) => {
+      void this.dataCache.initialize().catch((err) => {
         console.error("[NoteHeatmap] 缓存初始化失败:", err);
       });
     });
@@ -39,8 +39,8 @@ export default class NoteHeatmapPlugin extends Plugin {
     );
 
     // 左侧 ribbon 图标
-    this.addRibbonIcon("calendar-with-checkmark", "Note Heatmap", () => {
-      this.activateView();
+    this.addRibbonIcon("calendar-with-checkmark", "Note heatmap", () => {
+      void this.activateView();
     });
 
     // 命令：打开热力图
@@ -48,7 +48,7 @@ export default class NoteHeatmapPlugin extends Plugin {
       id: "open",
       name: t("commands.openView"),
       callback: () => {
-        this.activateView();
+        void this.activateView();
       },
     });
 
@@ -100,7 +100,7 @@ export default class NoteHeatmapPlugin extends Plugin {
       await leaf.setViewState({ type: HEATMAP_VIEW_TYPE, active: true });
     }
 
-    workspace.revealLeaf(leaf);
+    await workspace.revealLeaf(leaf);
   }
 
   /**

@@ -7,6 +7,179 @@
   --heatmap-column-width: 15px;
 }
 
+/* ============================================
+   Layout & Container Styles
+   ============================================ */
+
+/* Main container padding and overflow */
+.note-heatmap-container {
+  padding: 20px;
+  overflow-y: auto;
+}
+
+/* Flex column layout */
+.note-heatmap-flex-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Full width with max-width constraint */
+.note-heatmap-width-full {
+  width: 100%;
+  max-width: 850px;
+}
+
+/* ============================================
+   Tooltip Styles
+   ============================================ */
+
+.note-heatmap-tooltip {
+  position: fixed;
+  display: none;
+}
+
+.note-heatmap-tooltip.visible {
+  display: block;
+}
+
+/* ============================================
+   Result Panel Styles
+   ============================================ */
+
+/* Search container */
+.note-heatmap-search-container {
+  margin-bottom: 12px;
+}
+
+/* Search input */
+.note-heatmap-search-input {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--background-modifier-border);
+  border-radius: 4px;
+  background: var(--background-primary);
+  color: var(--text-normal);
+  font-size: 13px;
+  box-sizing: border-box;
+}
+
+/* Sort controls container */
+.note-heatmap-sort-container {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  font-size: 12px;
+}
+
+/* Sort button */
+.note-heatmap-sort-btn {
+  background: transparent;
+  border: none;
+  padding: 4px 8px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.note-heatmap-sort-btn.active {
+  color: var(--text-normal);
+  font-weight: bold;
+}
+
+/* List container with max height */
+.note-heatmap-list-container {
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* Unstyled list */
+.note-heatmap-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* ============================================
+   List Item Styles
+   ============================================ */
+
+/* List item row */
+.note-heatmap-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+/* List item left section */
+.note-heatmap-list-item-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+/* Truncated link text */
+.note-heatmap-link-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Days badge */
+.note-heatmap-days-badge {
+  color: var(--text-muted);
+  font-size: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+  background: var(--background-secondary);
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+/* Time span */
+.note-heatmap-time {
+  color: var(--text-muted);
+  font-size: 11px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* Diff button (VHD) */
+.diff-btn,
+.note-heatmap-vhd-btn {
+  font-size: 11px;
+  padding: 2px 8px;
+  background: var(--interactive-accent) !important;
+  color: var(--text-on-accent) !important;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Empty state text */
+.note-heatmap-empty {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+/* Title with note count */
+.note-heatmap-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--background-modifier-border);
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+
 /* Month container */
 .heatmap-plugin-wrapper .month-container {
   position: relative;

@@ -72,23 +72,23 @@ var import_obsidian = require("obsidian");
 var en = {
   // Settings - General
   settings: {
-    title: "Note Heatmap Settings",
+    title: "Note heatmap settings",
     targetField: {
-      name: "Target Field",
+      name: "Target field",
       desc: "Frontmatter field name for tracking modification dates. Supports single value or list. Field value format: ISO 8601 (e.g., 2026-04-14T10:30:00), YYYY-MM-DD (e.g., 2026-04-14), or Obsidian date object"
     },
     createdField: {
-      name: "Created Field",
+      name: "Created field",
       desc: "Frontmatter field name for determining if a note is new. Field value format: ISO 8601, YYYY-MM-DD, or Obsidian date object. Falls back to file creation time if not set"
     },
     targetFolder: {
-      name: "Target Folder",
+      name: "Target folder",
       desc: "Which folder to track notes from (relative to vault root)"
     }
   },
   // Settings - Colors
   colors: {
-    title: "Color Configuration",
+    title: "Color configuration",
     desc: "From left to right: No edits / 1-3 notes / 4-7 notes / 8-12 notes / 13+ notes",
     labels: [
       "No edits (0)",
@@ -100,45 +100,45 @@ var en = {
   },
   // Settings - Periodic Notes
   periodicNotes: {
-    title: "Periodic Note Path Configuration",
+    title: "Periodic note path configuration",
     yearly: {
-      name: "Yearly Note",
+      name: "Yearly note",
       desc: "Enable to show link to yearly note when clicking the year",
       folder: {
-        name: "Folder Path",
+        name: "Folder path",
         desc: "Root folder for yearly notes (relative to vault root). Leave empty for vault root",
         placeholder: "Leave empty for root"
       },
       format: {
-        name: "File Format",
+        name: "File format",
         desc: "File path format for yearly notes, based on the folder above. Format: YYYY (year). Content in [brackets] is output as-is",
         placeholder: "YYYY"
       }
     },
     daily: {
-      name: "Daily Note",
+      name: "Daily note",
       desc: "Enable to show link to daily note when clicking a date",
       folder: {
-        name: "Folder Path",
+        name: "Folder path",
         desc: "Root folder for daily notes (relative to vault root). Leave empty for vault root",
         placeholder: "Leave empty for root"
       },
       format: {
-        name: "File Format",
+        name: "File format",
         desc: "File path format for daily notes, based on the folder above. Format: YYYY (year), MM (month), DD (day). Content in [brackets] is output as-is",
         placeholder: "YYYY-[daily]/YYYY-MM-[daily]/YYYY-MM-DD"
       }
     },
     monthly: {
-      name: "Monthly Note",
+      name: "Monthly note",
       desc: "Enable to show link to monthly note when clicking a month",
       folder: {
-        name: "Folder Path",
+        name: "Folder path",
         desc: "Root folder for monthly notes (relative to vault root). Leave empty for vault root",
         placeholder: "Leave empty for root"
       },
       format: {
-        name: "File Format",
+        name: "File format",
         desc: "File path format for monthly notes, based on the folder above. Format: YYYY (year), MM (month). Content in [brackets] is output as-is",
         placeholder: "YYYY-[monthly]/YYYY-MM"
       }
@@ -146,9 +146,9 @@ var en = {
   },
   // Settings - Git Diff
   gitDiff: {
-    title: "Git Diff Feature",
+    title: "Git diff feature",
     enable: {
-      name: "Enable Git Diff Feature",
+      name: "Enable Git diff feature",
       descAllAvailable: "\u2705 All dependencies installed. Requires: Obsidian Git + Version History Diff",
       descMissingObsidianGit: "\u26A0\uFE0F Missing",
       descMissingVHD: "\u26A0\uFE0F Missing",
@@ -160,22 +160,22 @@ var en = {
   },
   // Settings - Reset
   reset: {
-    name: "Reset to Default Settings",
+    name: "Reset to default settings",
     button: "Reset"
   },
   // Commands
   commands: {
-    openView: "Open Note Heatmap",
-    refreshView: "Refresh Note Heatmap"
+    openView: "Open note heatmap",
+    refreshView: "Refresh note heatmap"
   },
   // Heatmap View
   view: {
-    title: "Note Heatmap",
+    title: "Note heatmap",
     header: {
       refresh: "Refresh",
-      prevYear: "Previous Year",
-      nextYear: "Next Year",
-      openYearlyNote: "Open {{year}} Yearly Note"
+      prevYear: "Previous year",
+      nextYear: "Next year",
+      openYearlyNote: "Open {{year}} yearly note"
     },
     tooltip: {
       noEdits: "No edits",
@@ -196,19 +196,19 @@ var en = {
     noEditsMonth: "No edits for this month",
     close: "Close file list",
     totalEdits: "{{total}} edits, {{new}} new",
-    diffButton: "View Diff",
-    vhdButton: "View Diff",
+    diffButton: "View diff",
+    vhdButton: "View diff",
     searchPlaceholder: "\u{1F50D} Search note names...",
     sortBy: {
       name: "Name",
-      activeDays: "Active Days",
-      lastModified: "Last Modified"
+      activeDays: "Active days",
+      lastModified: "Last modified"
     },
     days: "{{count}}d"
   },
   // Git Service
   git: {
-    installNotice: "\u{1F4A1} Install Obsidian Git plugin to view detailed Diff",
+    installNotice: "\u{1F4A1} Install Obsidian Git plugin to view detailed diff",
     noCommits: "No commits found",
     vhdNotInstalled: "Version History Diff plugin is not installed or enabled",
     vhdOpenFailed: "Failed to open Version History Diff"
@@ -479,24 +479,16 @@ var HeatmapView = class extends import_obsidian.ItemView {
    * 格式化日期路径
    * 支持：YYYY（年）、MM（月）、DD（日）
    * 方括号 [text] 中的内容原样输出
+   * 使用 Moment.js 处理，与 Periodic Notes 保持一致
    */
   formatDatePath(format, year, month, day) {
-    const yearStr = String(year);
-    const monthStr = String(month).padStart(2, "0");
-    const dayStr = day !== void 0 ? String(day).padStart(2, "0") : void 0;
-    const bracketPlaceholders = [];
-    let protectedFormat = format.replace(/\[([^\]]+)\]/g, (match, content) => {
-      bracketPlaceholders.push(content);
-      return `\0${bracketPlaceholders.length - 1}\0`;
-    });
-    protectedFormat = protectedFormat.replace(/YYYY/g, yearStr);
-    protectedFormat = protectedFormat.replace(/MM/g, monthStr);
-    if (dayStr !== void 0) {
-      protectedFormat = protectedFormat.replace(/DD/g, dayStr);
+    const m = window.moment();
+    m.year(Number(year));
+    m.month(Number(month) - 1);
+    if (day !== void 0) {
+      m.date(Number(day));
     }
-    return protectedFormat.replace(/\u0000(\d+)\u0000/g, (match, index) => {
-      return bracketPlaceholders[parseInt(index)];
-    });
+    return m.format(format);
   }
   getViewType() {
     return HEATMAP_VIEW_TYPE;
@@ -518,7 +510,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
       this.render();
     }
   }
-  async onClose() {
+  onClose() {
     if (this.tooltipDiv) {
       this.tooltipDiv.remove();
       this.tooltipDiv = null;
@@ -536,7 +528,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
         clearTimeout(this.renderDebounceTimer);
       }
       this.renderDebounceTimer = window.setTimeout(() => {
-        this.doRender();
+        void this.doRender();
       }, 100);
       return;
     }
@@ -544,26 +536,25 @@ var HeatmapView = class extends import_obsidian.ItemView {
       clearTimeout(this.renderDebounceTimer);
     }
     this.renderDebounceTimer = window.setTimeout(() => {
-      this.doRender();
+      void this.doRender();
     }, 50);
   }
-  async doRender() {
+  doRender() {
     if (this.isRendering)
       return;
     this.isRendering = true;
     try {
-      await this.performRender();
+      this.performRender();
     } catch (err) {
       console.error("[NoteHeatmap] Render failed:", err);
     } finally {
       this.isRendering = false;
     }
   }
-  async performRender() {
+  performRender() {
     const container = this.containerEl.children[1];
     container.empty();
-    container.style.padding = "20px";
-    container.style.overflowY = "auto";
+    container.addClass("note-heatmap-container");
     const year = this.currentYear;
     const { colors } = this.plugin.settings;
     const dataMap = this.plugin.dataCache.getYearData(year);
@@ -579,8 +570,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
   }
   /** 创建包装容器 */
   createWrapper(container) {
-    const wrapper = container.createDiv({ cls: "heatmap-plugin-wrapper" });
-    wrapper.style.cssText = "display:flex;flex-direction:column;gap:10px;width:100%;max-width:850px;";
+    const wrapper = container.createDiv({ cls: "heatmap-plugin-wrapper note-heatmap-flex-col note-heatmap-width-full" });
     return wrapper;
   }
   /** 渲染头部（年份导航） */
@@ -602,7 +592,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
     const monthNames = tArray("view.months");
     for (let i = 0; i < 12; i++) {
       const mDiv = monthContainer.createDiv({ cls: "m-name" });
-      mDiv.style.left = `${monthOffsets[i]}px`;
+      mDiv.setCssStyles({ left: `${monthOffsets[i]}px` });
       mDiv.setText(monthNames[i]);
       mDiv.dataset.monthIndex = String(i);
       monthElements.push(mDiv);
@@ -619,9 +609,9 @@ var HeatmapView = class extends import_obsidian.ItemView {
   }
   /** 渲染结果面板（初始状态） */
   renderResultPanel(wrapper) {
-    const resPanel = wrapper.createDiv();
-    resPanel.id = "res-panel";
-    resPanel.innerHTML = `<span style="color:var(--text-muted);font-style:italic;">${t("resultPanel.hint")}</span>`;
+    const resPanel = wrapper.createDiv({ attr: { id: "res-panel" } });
+    const hint = resPanel.createEl("span", { cls: "note-heatmap-empty" });
+    hint.setText(t("resultPanel.hint"));
     return resPanel;
   }
   /** 绑定头部事件 */
@@ -648,9 +638,13 @@ var HeatmapView = class extends import_obsidian.ItemView {
       yearDisplay.addClass("clickable");
       yearDisplay.title = t("view.header.openYearlyNote", { year: String(year) });
       this.bindYearlyNoteHover(yearDisplay, year);
-      yearDisplay.addEventListener("click", () => this.openPeriodicNote("yearly", year));
+      yearDisplay.addEventListener("click", () => {
+        void this.openPeriodicNote("yearly", year);
+      });
     }
-    refreshBtn.addEventListener("click", () => this.plugin.forceRefresh());
+    refreshBtn.addEventListener("click", () => {
+      void this.plugin.forceRefresh();
+    });
   }
   /** 绑定年度笔记悬停预览 */
   bindYearlyNoteHover(yearDisplay, year) {
@@ -690,8 +684,9 @@ var HeatmapView = class extends import_obsidian.ItemView {
   /** 绑定网格点击事件 */
   bindGridEvents(calGrid, dataMap, resPanel) {
     calGrid.addEventListener("click", (e) => {
-      const box = e.target.closest(".h-box");
-      if (!box || !box.dataset.date)
+      const target = e.target;
+      const box = target.closest(".h-box");
+      if (!(box instanceof HTMLElement) || !box.dataset.date)
         return;
       calGrid.querySelectorAll(".h-box.active").forEach((b) => b.removeClass("active"));
       box.addClass("active");
@@ -704,25 +699,26 @@ var HeatmapView = class extends import_obsidian.ItemView {
   showTooltip(el, text) {
     if (!this.tooltipDiv) {
       this.tooltipDiv = document.createElement("div");
-      this.tooltipDiv.className = "heatmap-tooltip";
+      this.tooltipDiv.className = "heatmap-tooltip note-heatmap-tooltip";
       document.body.appendChild(this.tooltipDiv);
     }
     this.tooltipDiv.textContent = text;
     const rect = el.getBoundingClientRect();
-    this.tooltipDiv.style.left = rect.left + "px";
-    this.tooltipDiv.style.top = rect.bottom + 5 + "px";
-    this.tooltipDiv.style.display = "block";
+    this.tooltipDiv.setCssStyles({
+      left: `${rect.left}px`,
+      top: `${rect.bottom + 5}px`
+    });
+    this.tooltipDiv.addClass("visible");
   }
   /** 隐藏 tooltip */
   hideTooltip() {
     if (this.tooltipDiv)
-      this.tooltipDiv.style.display = "none";
+      this.tooltipDiv.removeClass("visible");
   }
   /** 重置结果面板 */
   resetPanel(resPanel) {
     resPanel.empty();
-    const span = resPanel.createEl("span");
-    span.style.cssText = "color:var(--text-muted);font-style:italic;";
+    const span = resPanel.createEl("span", { cls: "note-heatmap-empty" });
     span.setText(t("resultPanel.hint"));
   }
   /**
@@ -766,15 +762,15 @@ var HeatmapView = class extends import_obsidian.ItemView {
     a.textContent = text;
     a.setAttribute("data-href", path);
     a.setAttribute("href", path);
-    a.addEventListener("click", (e) => {
-      e.preventDefault();
-      const useNewLeaf = e.ctrlKey || e.metaKey;
-      this.app.workspace.openLinkText(path, "", useNewLeaf);
+    a.addEventListener("click", (mouseEvt) => {
+      mouseEvt.preventDefault();
+      const useNewLeaf = mouseEvt.ctrlKey || mouseEvt.metaKey;
+      void this.app.workspace.openLinkText(path, "", useNewLeaf);
     });
-    a.addEventListener("mouseover", (e) => {
-      const target = e.target;
+    a.addEventListener("mouseover", (evt) => {
+      const target = evt.target;
       this.app.workspace.trigger("hover-link", {
-        event: e,
+        event: evt,
         source: "preview",
         hoverParent: target,
         targetEl: target,
@@ -797,10 +793,8 @@ var HeatmapView = class extends import_obsidian.ItemView {
     const { searchQuery, sortKey, sortDesc } = this.renderSearchAndSortControls(resPanel, () => {
       renderList(searchQuery.value, sortKey.value, sortDesc.value);
     });
-    const listContainer = resPanel.createDiv();
-    listContainer.style.cssText = "max-height:300px;overflow-y:auto;";
-    const ul = listContainer.createEl("ul");
-    ul.style.cssText = "margin:0;padding:0;";
+    const listContainer = resPanel.createDiv({ cls: "note-heatmap-list-container" });
+    const ul = listContainer.createEl("ul", { cls: "note-heatmap-list" });
     const renderList = (search, key, desc) => {
       const filtered = this.filterNotes(notesArray, search);
       const sorted = this.sortNotes(filtered, key, desc, noteModDaysMap);
@@ -839,8 +833,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
   }
   /** 渲染面板标题栏（月份/日期面板共用） */
   renderPanelHeader(resPanel, titleText, totalCount, newCount, onClose, type, year, monthStr, dayStr) {
-    const titleDiv = resPanel.createDiv();
-    titleDiv.style.cssText = "display:flex;justify-content:space-between;align-items:center;padding-bottom:10px;border-bottom:1px solid var(--background-modifier-border);margin-bottom:12px;font-weight:bold;";
+    const titleDiv = resPanel.createDiv({ cls: "note-heatmap-title-row" });
     const leftDiv = titleDiv.createDiv({ cls: "title-left" });
     if (type === "month" && this.plugin.settings.enableMonthlyNote || type === "day" && this.plugin.settings.enableDailyNote) {
       const format = type === "month" ? this.plugin.settings.monthlyNoteFormat : this.plugin.settings.dailyNoteFormat;
@@ -872,8 +865,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
   }
   /** 渲染空消息 */
   renderEmptyMessage(resPanel, message) {
-    const emptyDiv = resPanel.createDiv();
-    emptyDiv.style.color = "var(--text-muted)";
+    const emptyDiv = resPanel.createDiv({ cls: "note-heatmap-empty" });
     emptyDiv.setText(message);
   }
   /** 渲染搜索和排序控件 */
@@ -883,31 +875,30 @@ var HeatmapView = class extends import_obsidian.ItemView {
       sortKey: { value: "modifiedTime" },
       sortDesc: { value: true }
     };
-    const searchDiv = resPanel.createDiv();
-    searchDiv.style.cssText = "margin-bottom:12px;";
-    const searchInput = searchDiv.createEl("input");
+    const searchDiv = resPanel.createDiv({ cls: "note-heatmap-search-container" });
+    const searchInput = searchDiv.createEl("input", { cls: "note-heatmap-search-input" });
     searchInput.type = "text";
     searchInput.placeholder = t("resultPanel.searchPlaceholder");
-    searchInput.style.cssText = "width:100%;padding:6px 10px;border:1px solid var(--background-modifier-border);border-radius:4px;background:var(--background-primary);color:var(--text-normal);font-size:13px;box-sizing:border-box;";
     searchInput.addEventListener("input", (e) => {
       state.searchQuery.value = e.target.value;
       onChange();
     });
-    const sortDiv = resPanel.createDiv();
-    sortDiv.style.cssText = "display:flex;gap:12px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--background-modifier-border);font-size:12px;";
+    const sortDiv = resPanel.createDiv({ cls: "note-heatmap-sort-container" });
     const sortButtons = /* @__PURE__ */ new Map();
     const updateSortButtons = () => {
       sortButtons.forEach((btn, key) => {
         const isActive = state.sortKey.value === key;
         const arrow = isActive ? state.sortDesc.value ? "\u2193" : "\u2191" : "";
         btn.setText(`${t(`resultPanel.sortBy.${key === "modifiedTime" ? "lastModified" : key}`)} ${arrow}`.trim());
-        btn.style.color = isActive ? "var(--text-normal)" : "var(--text-muted)";
-        btn.style.fontWeight = isActive ? "bold" : "normal";
+        if (isActive) {
+          btn.addClass("active");
+        } else {
+          btn.removeClass("active");
+        }
       });
     };
     const createSortBtn = (key) => {
-      const btn = sortDiv.createEl("button");
-      btn.style.cssText = "background:transparent;border:none;padding:4px 8px;cursor:pointer;border-radius:4px;font-size:12px;";
+      const btn = sortDiv.createEl("button", { cls: "note-heatmap-sort-btn" });
       sortButtons.set(key, btn);
       btn.addEventListener("click", () => {
         if (state.sortKey.value === key) {
@@ -954,31 +945,26 @@ var HeatmapView = class extends import_obsidian.ItemView {
     const firstDayOfMonth = new Date(year, monthIndex, 1);
     const lastDayOfMonth = new Date(year, monthIndex + 1, 0);
     notes.forEach((note) => {
-      const li = ul.createEl("li", { cls: "res-item" });
-      li.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:8px;";
-      const leftDiv = li.createDiv();
-      leftDiv.style.cssText = "display:flex;align-items:center;gap:8px;flex:1;min-width:0;";
+      const li = ul.createEl("li", { cls: "res-item note-heatmap-list-item" });
+      const leftDiv = li.createDiv({ cls: "note-heatmap-list-item-left" });
       const createdDate = note.createdDate ? new Date(note.createdDate) : null;
       const isNew = createdDate !== null && createdDate >= firstDayOfMonth && createdDate <= lastDayOfMonth;
       const displayName = isNew ? `\u{1F195} ${note.name}` : note.name;
       const a = this.createInternalLink(displayName, note.path);
-      a.style.cssText = "white-space:nowrap;overflow:hidden;text-overflow:ellipsis;";
+      a.addClass("note-heatmap-link-text");
       leftDiv.appendChild(a);
       const modDays = noteModDaysMap.get(note.path) || 1;
-      const daysSpan = leftDiv.createEl("span");
-      daysSpan.style.cssText = "color:var(--text-muted);font-size:11px;white-space:nowrap;flex-shrink:0;background:var(--background-secondary);padding:1px 6px;border-radius:3px;";
+      const daysSpan = leftDiv.createEl("span", { cls: "note-heatmap-days-badge" });
       daysSpan.setText(t("resultPanel.days", { count: modDays }));
       const modTime = new Date(note.modifiedTime);
       const timeStr = `${String(modTime.getMonth() + 1).padStart(2, "0")}-${String(modTime.getDate()).padStart(2, "0")} ${String(modTime.getHours()).padStart(2, "0")}:${String(modTime.getMinutes()).padStart(2, "0")}`;
-      const timeSpan = leftDiv.createEl("span");
-      timeSpan.style.cssText = "color:var(--text-muted);font-size:11px;white-space:nowrap;flex-shrink:0;";
+      const timeSpan = leftDiv.createEl("span", { cls: "note-heatmap-time" });
       timeSpan.setText(timeStr);
       if (this.plugin.settings.enableGitDiff) {
-        const vhdBtn = li.createEl("button", { cls: "diff-btn", text: t("resultPanel.vhdButton") });
-        vhdBtn.style.cssText = "font-size:11px;padding:2px 8px;background:var(--interactive-accent);color:var(--text-on-accent);border:none;border-radius:3px;cursor:pointer;flex-shrink:0;";
-        vhdBtn.addEventListener("click", async (e) => {
+        const vhdBtn = li.createEl("button", { cls: "diff-btn note-heatmap-vhd-btn", text: t("resultPanel.vhdButton") });
+        vhdBtn.addEventListener("click", (e) => {
           e.stopPropagation();
-          await onVhdClick(note);
+          void onVhdClick(note);
         });
       }
     });
@@ -1072,7 +1058,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
         titleText = `${s}: ${t("view.tooltip.outOfYear", { year: String(year) })}`;
       }
       const box = calGrid.createDiv({ cls: "h-box" });
-      box.style.backgroundColor = isInYear ? color : colors[0];
+      box.setCssStyles({ backgroundColor: isInYear ? color : colors[0] });
       if (!isInYear) {
         box.addClass("out-of-year");
       }
@@ -1094,8 +1080,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
       this.renderEmptyMessage(resPanel, t("resultPanel.noEdits"));
       return;
     }
-    const ul = resPanel.createEl("ul");
-    ul.style.cssText = "margin:0;padding:0;";
+    const ul = resPanel.createEl("ul", { cls: "note-heatmap-list" });
     const uniqueNotes = this.deduplicateAndSortNotes(notes);
     this.renderSimpleNoteList(ul, uniqueNotes, dateStr);
   }
@@ -1113,24 +1098,20 @@ var HeatmapView = class extends import_obsidian.ItemView {
   renderSimpleNoteList(ul, notes, dateStr) {
     ul.empty();
     notes.forEach((n) => {
-      const li = ul.createEl("li", { cls: "res-item" });
-      li.style.cssText = "display:flex;justify-content:space-between;align-items:center;gap:8px;";
-      const leftDiv = li.createDiv();
-      leftDiv.style.cssText = "display:flex;align-items:center;gap:8px;flex:1;min-width:0;";
+      const li = ul.createEl("li", { cls: "res-item note-heatmap-list-item" });
+      const leftDiv = li.createDiv({ cls: "note-heatmap-list-item-left" });
       const isNew = n.createdDate === dateStr;
       const displayName = isNew ? `\u{1F195} ${n.name}` : n.name;
       const a = this.createInternalLink(displayName, n.path);
       leftDiv.appendChild(a);
-      const timeSpan = leftDiv.createEl("span");
-      timeSpan.style.cssText = "color:var(--text-muted);font-size:11px;white-space:nowrap;flex-shrink:0;";
+      const timeSpan = leftDiv.createEl("span", { cls: "note-heatmap-time" });
       const date = new Date(n.modifiedTime);
       timeSpan.textContent = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
       if (this.plugin.settings.enableGitDiff) {
-        const vhdBtn = li.createEl("button", { cls: "diff-btn", text: t("resultPanel.vhdButton") });
-        vhdBtn.style.cssText = "font-size:11px;padding:2px 8px;background:var(--interactive-accent);color:var(--text-on-accent);border:none;border-radius:3px;cursor:pointer;";
-        vhdBtn.addEventListener("click", async (e) => {
+        const vhdBtn = li.createEl("button", { cls: "diff-btn note-heatmap-vhd-btn", text: t("resultPanel.vhdButton") });
+        vhdBtn.addEventListener("click", (e) => {
           e.stopPropagation();
-          await this.openInVHD(n, dateStr);
+          void this.openInVHD(n, dateStr);
         });
       }
     });
@@ -1209,13 +1190,13 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
   /** 基础设置 */
   renderBasicSettings(containerEl) {
     new import_obsidian2.Setting(containerEl).setName(t("settings.targetField.name")).setDesc(t("settings.targetField.desc")).addText(
-      (text) => text.setPlaceholder("last-modified").setValue(this.plugin.settings.targetField).onChange(async (value) => {
+      (text) => text.setPlaceholder("Last modified").setValue(this.plugin.settings.targetField).onChange(async (value) => {
         this.plugin.settings.targetField = value.trim();
         await this.plugin.saveSettings();
       })
     );
     new import_obsidian2.Setting(containerEl).setName(t("settings.createdField.name")).setDesc(t("settings.createdField.desc")).addText(
-      (text) => text.setPlaceholder("created").setValue(this.plugin.settings.createdField).onChange(async (value) => {
+      (text) => text.setPlaceholder("Created").setValue(this.plugin.settings.createdField).onChange(async (value) => {
         this.plugin.settings.createdField = value.trim();
         await this.plugin.saveSettings();
         this.plugin.dataCache.updateSettings(this.plugin.settings.targetField, this.plugin.settings.targetFolder);
@@ -1372,6 +1353,8 @@ function parseDateString(val) {
     }
     return null;
   }
+  if (typeof val !== "string" && typeof val !== "number")
+    return null;
   const str = String(val);
   const isoMatch = str.match(/^(\d{4}-\d{2}-\d{2})/);
   if (isoMatch)
@@ -1501,11 +1484,17 @@ var DataCache = class extends import_obsidian3.Component {
     const fm = cache == null ? void 0 : cache.frontmatter;
     if (!fm)
       return;
-    let rawDates = fm[this.targetField];
+    const rawDates = fm[this.targetField];
     if (!rawDates)
       return;
-    if (!Array.isArray(rawDates))
-      rawDates = [rawDates];
+    let dates;
+    if (typeof rawDates === "string") {
+      dates = [rawDates];
+    } else if (Array.isArray(rawDates) && rawDates.every((item) => typeof item === "string")) {
+      dates = rawDates;
+    } else {
+      return;
+    }
     let createdDate = null;
     const createdField = this.plugin.settings.createdField;
     if (fm[createdField]) {
@@ -1514,28 +1503,20 @@ var DataCache = class extends import_obsidian3.Component {
     if (!createdDate) {
       createdDate = new Date(file.stat.ctime).toISOString().split("T")[0];
     }
-    for (const d of rawDates) {
+    for (const d of dates) {
       if (!d)
         continue;
       let dateStr;
       let modifiedTime;
-      try {
-        const str = String(d);
-        const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
-        if (!isoMatch)
-          continue;
-        const [, year2, month, day] = isoMatch;
-        dateStr = `${year2}-${month}-${day}`;
-        const dateObj = new Date(str);
-        if (isNaN(dateObj.getTime()))
-          continue;
-        modifiedTime = dateObj.getTime();
-      } catch (e) {
+      const isoMatch = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+      if (!isoMatch)
         continue;
-      }
-      const year = parseInt(dateStr.split("-")[0]);
-      if (isNaN(year))
+      const [, year, month, day] = isoMatch;
+      dateStr = `${year}-${month}-${day}`;
+      const dateObj = new Date(d);
+      if (isNaN(dateObj.getTime()))
         continue;
+      modifiedTime = dateObj.getTime();
       if (!this.cache[year]) {
         this.cache[year] = {};
       }
@@ -1659,7 +1640,7 @@ var DataCache = class extends import_obsidian3.Component {
       this.cache = {};
       this.isInitialized = false;
       this.initPromise = null;
-      this.initialize();
+      void this.initialize();
     }
   }
   /**
@@ -1685,12 +1666,8 @@ var GitService = class {
    * 查找 Obsidian Git 插件
    */
   findGitPlugin() {
-    var _a;
     try {
-      const plugins = (_a = this.plugin.app.plugins) == null ? void 0 : _a.plugins;
-      if (plugins == null ? void 0 : plugins["obsidian-git"]) {
-        this.gitPlugin = plugins["obsidian-git"];
-      }
+      this.gitPlugin = this.plugin.app.plugins.getPlugin("obsidian-git");
     } catch (e) {
     }
   }
@@ -1708,9 +1685,10 @@ var GitService = class {
    * 提取公共模式：获取 + 空值检查
    */
   getGitManager() {
+    var _a;
     if (!this.isGitPluginAvailable())
       return null;
-    return this.gitPlugin.gitManager || null;
+    return ((_a = this.gitPlugin) == null ? void 0 : _a.gitManager) || null;
   }
   /**
    * 确定 diff 的起始 hash
@@ -1988,8 +1966,8 @@ var NoteHeatmapPlugin = class extends import_obsidian4.Plugin {
     this.addChild(this.dataCache);
     this.gitService = new GitService(this);
     this.app.workspace.onLayoutReady(() => {
-      this.checkAndAutoEnableGitDiff();
-      this.dataCache.initialize().catch((err) => {
+      void this.checkAndAutoEnableGitDiff();
+      void this.dataCache.initialize().catch((err) => {
         console.error("[NoteHeatmap] \u7F13\u5B58\u521D\u59CB\u5316\u5931\u8D25:", err);
       });
     });
@@ -1997,14 +1975,14 @@ var NoteHeatmapPlugin = class extends import_obsidian4.Plugin {
       HEATMAP_VIEW_TYPE,
       (leaf) => new HeatmapView(leaf, this)
     );
-    this.addRibbonIcon("calendar-with-checkmark", "Note Heatmap", () => {
-      this.activateView();
+    this.addRibbonIcon("calendar-with-checkmark", "Note heatmap", () => {
+      void this.activateView();
     });
     this.addCommand({
       id: "open",
       name: t("commands.openView"),
       callback: () => {
-        this.activateView();
+        void this.activateView();
       }
     });
     this.addCommand({
@@ -2041,7 +2019,7 @@ var NoteHeatmapPlugin = class extends import_obsidian4.Plugin {
       leaf = workspace.getLeaf("tab");
       await leaf.setViewState({ type: HEATMAP_VIEW_TYPE, active: true });
     }
-    workspace.revealLeaf(leaf);
+    await workspace.revealLeaf(leaf);
   }
   /**
    * 检查指定插件是否已安装并启用

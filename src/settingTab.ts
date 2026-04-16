@@ -43,7 +43,7 @@ export class HeatmapSettingTab extends PluginSettingTab {
       .setDesc(t("settings.targetField.desc"))
       .addText(text =>
         text
-          .setPlaceholder("last-modified")
+          .setPlaceholder("Last modified")
           .setValue(this.plugin.settings.targetField)
           .onChange(async (value) => {
             this.plugin.settings.targetField = value.trim();
@@ -56,7 +56,7 @@ export class HeatmapSettingTab extends PluginSettingTab {
       .setDesc(t("settings.createdField.desc"))
       .addText(text =>
         text
-          .setPlaceholder("created")
+          .setPlaceholder("Created")
           .setValue(this.plugin.settings.createdField)
           .onChange(async (value) => {
             this.plugin.settings.createdField = value.trim();
@@ -185,7 +185,8 @@ export class HeatmapSettingTab extends PluginSettingTab {
     new Setting(containerEl).setName(t("gitDiff.title")).setHeading();
 
     const gitAvailable = this.plugin.gitService?.isGitPluginAvailable() ?? false;
-    const vhdAvailable = !!(this.app as any).plugins?.plugins?.["obsidian-version-history-diff"];
+    // @ts-ignore - Obsidian API 类型定义不包含 plugins 属性
+    const vhdAvailable = !!this.app.plugins?.plugins?.["obsidian-version-history-diff"];
     const allDependenciesMet = gitAvailable && vhdAvailable;
 
     const gitDiffDesc = this.buildGitDiffDesc(gitAvailable, vhdAvailable, allDependenciesMet);
