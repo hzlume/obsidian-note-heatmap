@@ -1,3 +1,5 @@
+<!-- Symphony workflow is working for HZL-7. -->
+
 # Obsidian Note Heatmap
 
 [![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22note-heatmap%22%5D.downloads&url=https%3A%2F%2Freleases.obsidian.md%2Fstats%2Fadopter)](https://obsidian.md/plugins?id=note-heatmap)
