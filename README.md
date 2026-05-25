@@ -180,6 +180,8 @@ npm run build   # Production build
 
 **Note:** The build script automatically copies `styles.css` to the vault plugin folder.
 
+Automation workflow verification for HZL-6: this repository supports the Symphony to Codex to GitHub PR smoke-test path.
+
 ### Project Structure
 
 ```
