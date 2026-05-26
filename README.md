@@ -40,9 +40,8 @@ A note edited on three different days contributes to all three days — not just
 
 ## Installation
 
-### Obsidian Community Plugins (Coming Soon)
+### Obsidian Community Plugins
 
-Once approved, you will be able to:
 1. Settings → Community Plugins → Browse
 2. Search "Note Heatmap"
 3. Install and enable
