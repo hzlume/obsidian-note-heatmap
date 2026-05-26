@@ -151,12 +151,12 @@
 }
 
 /* Diff button (VHD) */
-.diff-btn,
-.note-heatmap-vhd-btn {
+.note-heatmap-container .diff-btn,
+.note-heatmap-container .note-heatmap-vhd-btn {
   font-size: 11px;
   padding: 2px 8px;
-  background: var(--interactive-accent) !important;
-  color: var(--text-on-accent) !important;
+  background: var(--interactive-accent);
+  color: var(--text-on-accent);
   border: none;
   border-radius: 3px;
   cursor: pointer;
