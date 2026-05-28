@@ -5,6 +5,7 @@
 
 > Visualize your note activity with a GitHub-style heatmap. Track writing habits and discover patterns in your knowledge management.
 
+
 [English](./README.md) | [中文](./README.zh.md)
 
 ---
