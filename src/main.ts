@@ -13,6 +13,7 @@ export default class NoteHeatmapPlugin extends Plugin {
   dataCache: DataCache;
   gitService: GitService;
   embeddedHeatmaps = new Set<HeatmapRenderer>();
+  accentColor: string | null = null;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -30,6 +31,9 @@ export default class NoteHeatmapPlugin extends Plugin {
     // 等 Obsidian 完全准备好后再初始化缓存和检测依赖插件
     // 确保 metadataCache 已经解析完所有文件，其他插件已加载
     this.app.workspace.onLayoutReady(() => {
+      // 读取 акцентный цвет из appearance.json
+      void this.loadAccentColor();
+
       // 检测依赖插件，如果都安装了则默认开启 git diff
       void this.checkAndAutoEnableGitDiff();
 
@@ -42,6 +46,13 @@ export default class NoteHeatmapPlugin extends Plugin {
     this.registerView(
       HEATMAP_VIEW_TYPE,
       (leaf) => new HeatmapView(leaf, this)
+    );
+
+    // Смена темы/оформления Obsidian: перерисовываем все карты, чтобы подхватить палитру
+    this.registerEvent(
+      this.app.workspace.on("css-change", () => {
+        this.refreshViews();
+      })
     );
 
     // 左侧 ribbon 图标
@@ -77,6 +88,25 @@ export default class NoteHeatmapPlugin extends Plugin {
 
   async loadSettings(): Promise<void> {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+
+  /**
+   * Читает акцентный цвет пользователя из .obsidian/appearance.json
+   * (поле accentColor) и сохраняет в this.accentColor.
+   */
+  async loadAccentColor(): Promise<void> {
+    try {
+      const adapter = this.app.vault.adapter;
+      const configDir = this.app.vault.configDir || ".obsidian";
+      const content = await adapter.read(`${configDir}/appearance.json`);
+      const data = JSON.parse(content) as { accentColor?: string };
+      if (data.accentColor) {
+        this.accentColor = data.accentColor;
+        console.debug("[NoteHeatmap] accentColor from appearance.json:", this.accentColor);
+      }
+    } catch (err) {
+      console.debug("[NoteHeatmap] Failed to read accent color:", err);
+    }
   }
 
   async saveSettings(): Promise<void> {

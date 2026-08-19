@@ -2,9 +2,9 @@
 
 /* CSS Variables for dynamic values */
 .heatmap-plugin-wrapper {
-  --heatmap-box-size: 12px;
-  --heatmap-gap: 3px;
-  --heatmap-column-width: 15px;
+  --heatmap-box-size: 10px;
+  --heatmap-gap: 2px;
+  --heatmap-column-width: 12px;
 }
 
 /* ============================================
@@ -215,7 +215,7 @@
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  height: 102px;
+  height: 82px;
   width: 30px;
   margin-right: 8px;
 }
@@ -223,8 +223,8 @@
 .heatmap-plugin-wrapper .w-lab {
   font-size: 10px;
   color: var(--text-muted);
-  height: 12px;
-  line-height: 12px;
+  height: 10px;
+  line-height: 10px;
 }
 
 /* Calendar grid */
@@ -232,7 +232,7 @@
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
-  height: 102px;
+  height: 82px;
   gap: var(--heatmap-gap);
   align-content: flex-start;
 }

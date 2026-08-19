@@ -14,12 +14,34 @@ export const en = {
       name: "Target folder",
       desc: "Which folder to track notes from (relative to vault root)",
     },
+    weekStart: {
+      name: "First day of week",
+      desc: "Which day the week starts on in the heatmap",
+      sunday: "Sunday",
+      monday: "Monday",
+    },
+    cellSize: {
+      name: "Cell size",
+      desc: "Size of each day cell in the heatmap (in pixels)",
+    },
+    cellGap: {
+      name: "Cell gap",
+      desc: "Space between day cells (in pixels)",
+    },
   },
 
   // Settings - Colors
   colors: {
     title: "Color configuration",
     desc: "From left to right: no edits / 1-3 notes / 4-7 notes / 8-12 notes / 13+ notes.",
+    light: "Light theme",
+    lightDesc: "Palette used in light mode.",
+    dark: "Dark theme",
+    darkDesc: "Palette used in dark mode. Adapted automatically when Obsidian theme changes.",
+    accentToggle: {
+      name: "Use theme accent color",
+      desc: "Generate the 5-level palette from your Obsidian accent color instead of the custom colors below.",
+    },
     labels: [
       "No edits (0)",
       "Light green (1-3)",
@@ -118,7 +140,7 @@ export const en = {
       new: "{{count}} new",
       outOfYear: "Not in {{year}}",
     },
-    weekdays: ["Sun", "", "Tue", "", "Thu", "", "Sat"],
+    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     periodicNote: {
       createFailed: "Failed to create {{type}} note",

@@ -37,6 +37,16 @@ var init_settings = __esm({
       targetFolder: "",
       // 空字符串表示整个 vault
       colors: ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"],
+      colorsDark: ["#161b22", "#0e4429", "#006d32", "#26a641", "#39d353"],
+      // тёмная палитра (GitHub dark)
+      useAccentColors: false,
+      // 使用 Obsidian 主题的强调色生成 5 阶调色板
+      weekStart: 0,
+      // 一周从星期几开始：0 = Sunday, 1 = Monday
+      boxSize: 10,
+      // 单元格大小（像素）
+      boxGap: 2,
+      // 单元格间距（像素）
       // 年度笔记默认配置（文件夹路径为空表示根目录）
       enableYearlyNote: true,
       yearlyNoteFolder: "",
@@ -87,12 +97,34 @@ var en = {
     targetFolder: {
       name: "Target folder",
       desc: "Which folder to track notes from (relative to vault root)"
+    },
+    weekStart: {
+      name: "First day of week",
+      desc: "Which day the week starts on in the heatmap",
+      sunday: "Sunday",
+      monday: "Monday"
+    },
+    cellSize: {
+      name: "Cell size",
+      desc: "Size of each day cell in the heatmap (in pixels)"
+    },
+    cellGap: {
+      name: "Cell gap",
+      desc: "Space between day cells (in pixels)"
     }
   },
   // Settings - Colors
   colors: {
     title: "Color configuration",
     desc: "From left to right: no edits / 1-3 notes / 4-7 notes / 8-12 notes / 13+ notes.",
+    light: "Light theme",
+    lightDesc: "Palette used in light mode.",
+    dark: "Dark theme",
+    darkDesc: "Palette used in dark mode. Adapted automatically when Obsidian theme changes.",
+    accentToggle: {
+      name: "Use theme accent color",
+      desc: "Generate the 5-level palette from your Obsidian accent color instead of the custom colors below."
+    },
     labels: [
       "No edits (0)",
       "Light green (1-3)",
@@ -186,7 +218,7 @@ var en = {
       new: "{{count}} new",
       outOfYear: "Not in {{year}}"
     },
-    weekdays: ["Sun", "", "Tue", "", "Thu", "", "Sat"],
+    weekdays: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
     months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     periodicNote: {
       createFailed: "Failed to create {{type}} note"
@@ -234,12 +266,34 @@ var zh = {
     targetFolder: {
       name: "\u76EE\u6807\u6587\u4EF6\u5939",
       desc: "\u7EDF\u8BA1\u54EA\u4E2A\u6587\u4EF6\u5939\u4E0B\u7684\u7B14\u8BB0\uFF08\u76F8\u5BF9\u4E8E vault \u6839\u76EE\u5F55\uFF09"
+    },
+    weekStart: {
+      name: "\u6BCF\u5468\u8D77\u59CB\u65E5",
+      desc: "\u70ED\u529B\u56FE\u4E2D\u4E00\u5468\u4ECE\u661F\u671F\u51E0\u5F00\u59CB",
+      sunday: "\u661F\u671F\u65E5",
+      monday: "\u661F\u671F\u4E00"
+    },
+    cellSize: {
+      name: "\u5355\u5143\u683C\u5927\u5C0F",
+      desc: "\u70ED\u529B\u56FE\u4E2D\u6BCF\u4E2A\u65E5\u671F\u7684\u5355\u5143\u683C\u5927\u5C0F\uFF08\u50CF\u7D20\uFF09"
+    },
+    cellGap: {
+      name: "\u5355\u5143\u683C\u95F4\u8DDD",
+      desc: "\u65E5\u671F\u5355\u5143\u683C\u4E4B\u95F4\u7684\u95F4\u8DDD\uFF08\u50CF\u7D20\uFF09"
     }
   },
   // Settings - Colors
   colors: {
     title: "\u989C\u8272\u914D\u7F6E",
     desc: "\u4ECE\u5DE6\u5230\u53F3\u4F9D\u6B21\u5BF9\u5E94\uFF1A\u65E0\u4FEE\u6539 / 1-3\u7BC7 / 4-7\u7BC7 / 8-12\u7BC7 / 13\u7BC7\u4EE5\u4E0A",
+    light: "\u6D45\u8272\u4E3B\u9898",
+    lightDesc: "\u6D45\u8272\u6A21\u5F0F\u4E0B\u4F7F\u7528\u7684\u8C03\u8272\u677F\u3002",
+    dark: "\u6DF1\u8272\u4E3B\u9898",
+    darkDesc: "\u6DF1\u8272\u6A21\u5F0F\u4E0B\u4F7F\u7528\u7684\u8C03\u8272\u677F\u3002Obsidian \u5207\u6362\u4E3B\u9898\u65F6\u81EA\u52A8\u9002\u914D\u3002",
+    accentToggle: {
+      name: "\u4F7F\u7528\u4E3B\u9898\u5F3A\u8C03\u8272",
+      desc: "\u6839\u636E Obsidian \u5F3A\u8C03\u8272\u81EA\u52A8\u751F\u6210 5 \u9636\u8C03\u8272\u677F\uFF0C\u66FF\u4EE3\u4E0B\u65B9\u81EA\u5B9A\u4E49\u989C\u8272"
+    },
     labels: [
       "\u65E0\u4FEE\u6539\uFF080\u7BC7\uFF09",
       "\u6D45\u7EFF\uFF081-3\u7BC7\uFF09",
@@ -333,7 +387,7 @@ var zh = {
       new: "\u5176\u4E2D {{count}} \u7BC7\u4E3A\u65B0\u589E",
       outOfYear: "\u4E0D\u5728{{year}}\u5E74\u5185"
     },
-    weekdays: ["\u65E5", "", "\u4E8C", "", "\u56DB", "", "\u516D"],
+    weekdays: ["\u65E5", "\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"],
     months: ["1\u6708", "2\u6708", "3\u6708", "4\u6708", "5\u6708", "6\u6708", "7\u6708", "8\u6708", "9\u6708", "10\u6708", "11\u6708", "12\u6708"],
     periodicNote: {
       createFailed: "\u521B\u5EFA{{type}}\u7B14\u8BB0\u5931\u8D25"
@@ -465,15 +519,26 @@ function selectCommitInList(listContainer, targetHash) {
 }
 
 // src/heatmapRenderer.ts
-var BOX_SIZE = 12;
-var GAP = 3;
-var COLUMN_WIDTH = BOX_SIZE + GAP;
+var DEFAULT_BOX_SIZE = 10;
+var DEFAULT_GAP = 2;
+var DEFAULT_COLUMN_WIDTH = DEFAULT_BOX_SIZE + DEFAULT_GAP;
 var HeatmapRenderer = class {
   constructor(plugin, year) {
     this.tooltipDiv = null;
     this.container = null;
     this.plugin = plugin;
     this.currentYear = year != null ? year : new Date().getFullYear();
+  }
+  get boxSize() {
+    var _a;
+    return (_a = this.plugin.settings.boxSize) != null ? _a : DEFAULT_BOX_SIZE;
+  }
+  get gap() {
+    var _a;
+    return (_a = this.plugin.settings.boxGap) != null ? _a : DEFAULT_GAP;
+  }
+  get columnWidth() {
+    return this.boxSize + this.gap;
   }
   /**
    * Рендерит тепловую карту в указанный контейнер.
@@ -483,7 +548,7 @@ var HeatmapRenderer = class {
     container.empty();
     container.addClass("note-heatmap-container");
     const year = this.currentYear;
-    const { colors } = this.plugin.settings;
+    const colors = this.getEffectiveColors();
     const dataMap = this.plugin.dataCache.getYearData(year);
     const monthlyData = this.prepareMonthlyData(dataMap);
     const monthOffsets = this.calcMonthOffsets(year);
@@ -504,6 +569,210 @@ var HeatmapRenderer = class {
     }
   }
   /**
+   * Возвращает эффективную палитру: либо пользовательскую (с учётом темы),
+   * либо сгенерированную из акцентного цвета Obsidian, если включена настройка.
+   */
+  getEffectiveColors() {
+    if (!this.plugin.settings.useAccentColors) {
+      return this.isDarkTheme() ? this.plugin.settings.colorsDark : this.plugin.settings.colors;
+    }
+    return this.buildAccentPalette();
+  }
+  /**
+   * Есть ли в Obsidian активна тёмная тема.
+   * Obsidian вешает на <body> классы theme-light / theme-dark.
+   */
+  isDarkTheme() {
+    return document.body.classList.contains("theme-dark");
+  }
+  /**
+   * Нейтральные цвета для фона/пустой ячейки в зависимости от темы.
+   * В тёмной теме базовый «фон» — тёмный, чтобы оттенки акцента
+   * нарастали от тёмного к насыщенному.
+   */
+  getNeutralColors() {
+    if (this.isDarkTheme()) {
+      return { noEditColor: "#191919", base: { r: 22, g: 27, b: 34 } };
+    }
+    return { noEditColor: "#ebebeb", base: { r: 240, g: 242, b: 244 } };
+  }
+  /**
+   * Генерирует 5-ступенчатую палитру из акцентного цвета Obsidian.
+   * Оттенок 0 — нейтральный серый (как в стандартной палитре),
+   * оттенки 1..4 — возрастающая глубина акцента. Учитывает тему.
+   */
+  buildAccentPalette() {
+    const { noEditColor, base } = this.getNeutralColors();
+    if (this.plugin.accentColor) {
+      const rgb = this.hexToRgb(this.plugin.accentColor);
+      if (rgb) {
+        const levels = [0, 0.3, 0.55, 0.78, 1];
+        const palette = levels.map((t01) => {
+          if (t01 === 0)
+            return noEditColor;
+          const r = Math.round(base.r + (rgb.r - base.r) * t01);
+          const g = Math.round(base.g + (rgb.g - base.g) * t01);
+          const b = Math.round(base.b + (rgb.b - base.b) * t01);
+          return this.rgbToHex(r, g, b);
+        });
+        console.debug("[NoteHeatmap] accent palette (appearance.json)", palette);
+        return palette;
+      }
+    }
+    const hsl = this.getAccentHsl();
+    if (hsl) {
+      const { h, s } = hsl;
+      const levels = this.isDarkTheme() ? [0, 0.16, 0.26, 0.36, 0.46] : [0, 0.82, 0.66, 0.5, 0.38];
+      const palette = levels.map((ll) => {
+        if (ll === 0)
+          return noEditColor;
+        return this.hslToHex(h, s, ll);
+      });
+      console.debug("[NoteHeatmap] accent palette (hsl)", palette);
+      return palette;
+    }
+    const accent = this.getAccentColor();
+    if (accent) {
+      const rgb = this.hexToRgb(accent);
+      if (rgb) {
+        const levels = [0, 0.3, 0.55, 0.78, 1];
+        const palette = levels.map((t01) => {
+          if (t01 === 0)
+            return noEditColor;
+          const r = Math.round(base.r + (rgb.r - base.r) * t01);
+          const g = Math.round(base.g + (rgb.g - base.g) * t01);
+          const b = Math.round(base.b + (rgb.b - base.b) * t01);
+          return this.rgbToHex(r, g, b);
+        });
+        console.debug("[NoteHeatmap] accent palette (rgb)", palette);
+        return palette;
+      }
+    }
+    console.debug("[NoteHeatmap] no accent color found, using default colors");
+    return this.isDarkTheme() ? this.plugin.settings.colorsDark : this.plugin.settings.colors;
+  }
+  /**
+   * Читает акцентный цвет Obsidian из CSS-переменных.
+   * Проверяет несколько источников и элементов (body, html).
+   */
+  getAccentColor() {
+    const elements = [];
+    if (document.body)
+      elements.push(document.body);
+    if (document.documentElement)
+      elements.push(document.documentElement);
+    const varNames = ["--accent", "--color-accent", "--interactive-accent"];
+    for (const el of elements) {
+      const style = window.getComputedStyle(el);
+      for (const varName of varNames) {
+        const value = style.getPropertyValue(varName).trim();
+        if (value) {
+          console.debug("[NoteHeatmap] accent var", varName, "=", value);
+          return value;
+        }
+      }
+    }
+    return null;
+  }
+  /**
+   * Читает HSL-компоненты акцента Obsidian: --accent-h/s/l.
+   */
+  getAccentHsl() {
+    const elements = [];
+    if (document.body)
+      elements.push(document.body);
+    if (document.documentElement)
+      elements.push(document.documentElement);
+    for (const el of elements) {
+      const style = window.getComputedStyle(el);
+      const h = this.parseHslComponent(style.getPropertyValue("--accent-h"));
+      const s = this.parseHslComponent(style.getPropertyValue("--accent-s"));
+      const l = this.parseHslComponent(style.getPropertyValue("--accent-l"));
+      if (h !== null && s !== null && l !== null) {
+        console.debug("[NoteHeatmap] accent hsl", h, s, l);
+        return { h, s, l };
+      }
+    }
+    return null;
+  }
+  parseHslComponent(value) {
+    if (!value)
+      return null;
+    const cleaned = value.trim().replace(/%$/, "");
+    const num = Number(cleaned);
+    if (isNaN(num))
+      return null;
+    return num;
+  }
+  hslToHex(h, s, l) {
+    const sat = s / 100;
+    const light = l / 100;
+    const c = (1 - Math.abs(2 * light - 1)) * sat;
+    const x = c * (1 - Math.abs(h / 60 % 2 - 1));
+    const m = light - c / 2;
+    let r = 0, g = 0, b = 0;
+    if (h < 60) {
+      r = c;
+      g = x;
+      b = 0;
+    } else if (h < 120) {
+      r = x;
+      g = c;
+      b = 0;
+    } else if (h < 180) {
+      r = 0;
+      g = c;
+      b = x;
+    } else if (h < 240) {
+      r = 0;
+      g = x;
+      b = c;
+    } else if (h < 300) {
+      r = x;
+      g = 0;
+      b = c;
+    } else {
+      r = c;
+      g = 0;
+      b = x;
+    }
+    return this.rgbToHex((r + m) * 255, (g + m) * 255, (b + m) * 255);
+  }
+  /**
+   * Преобразует цвет в объект RGB. Поддерживает "#rrggbb", "#rgb", "rgb(...)",
+   * "rgba(...)", "hsl(h, s%, l%)", "hsla(...)". Вернёт null при ошибке.
+   */
+  hexToRgb(value) {
+    let v = value.trim();
+    const rgbMatch = v.match(/^rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/i);
+    if (rgbMatch) {
+      return { r: Number(rgbMatch[1]), g: Number(rgbMatch[2]), b: Number(rgbMatch[3]) };
+    }
+    const hslMatch = v.match(/^hsla?\(\s*([\d.]+)[^\d,]*\s*,\s*([\d.]+)%?\s*,\s*([\d.]+)%?/i);
+    if (hslMatch) {
+      return this.hslToRgb(Number(hslMatch[1]), Number(hslMatch[2]), Number(hslMatch[3]));
+    }
+    v = v.replace("#", "");
+    if (v.length === 3) {
+      v = v.split("").map((c) => c + c).join("");
+    }
+    if (!/^[0-9a-fA-F]{6}$/.test(v))
+      return null;
+    const num = parseInt(v, 16);
+    return { r: num >> 16 & 255, g: num >> 8 & 255, b: num & 255 };
+  }
+  hslToRgb(h, s, l) {
+    const rgb = this.hslToHex(h, s, l);
+    const r = parseInt(rgb.slice(1, 3), 16);
+    const g = parseInt(rgb.slice(3, 5), 16);
+    const b = parseInt(rgb.slice(5, 7), 16);
+    return { r, g, b };
+  }
+  rgbToHex(r, g, b) {
+    const to = (v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0");
+    return `#${to(r)}${to(g)}${to(b)}`;
+  }
+  /**
    * Форматирование пути по шаблону (YYYY/MM/DD + защита [text]).
    */
   formatDatePath(format, year, month, day) {
@@ -518,6 +787,9 @@ var HeatmapRenderer = class {
   /** Создание обёртки */
   createWrapper(container) {
     const wrapper = container.createDiv({ cls: "heatmap-plugin-wrapper note-heatmap-flex-col note-heatmap-width-full" });
+    wrapper.style.setProperty("--heatmap-box-size", `${this.boxSize}px`);
+    wrapper.style.setProperty("--heatmap-gap", `${this.gap}px`);
+    wrapper.style.setProperty("--heatmap-column-width", `${this.columnWidth}px`);
     return wrapper;
   }
   /** Рендер шапки (навигация по годам) */
@@ -547,8 +819,9 @@ var HeatmapRenderer = class {
     const calBody = heatmapSection.createDiv({ cls: "cal-body" });
     const wLabs = calBody.createDiv({ cls: "w-labs" });
     const weekDays = tArray("view.weekdays");
-    for (const w of weekDays) {
-      wLabs.createDiv({ cls: "w-lab", text: w });
+    for (let i = 0; i < 7; i++) {
+      const label = this.weekdayLabel(weekDays, i);
+      wLabs.createDiv({ cls: "w-lab", text: label });
     }
     const calGrid = calBody.createDiv({ cls: "cal-grid" });
     this.buildCalendarGrid(calGrid, year, colors, dataMap);
@@ -939,29 +1212,50 @@ var HeatmapRenderer = class {
   /** Смещения месяцев */
   calcMonthOffsets(year) {
     const yearStartForOffset = new Date(year, 0, 1);
-    const firstSunday = new Date(yearStartForOffset);
-    firstSunday.setDate(yearStartForOffset.getDate() - yearStartForOffset.getDay());
+    const firstWeekStart = new Date(yearStartForOffset);
+    firstWeekStart.setDate(yearStartForOffset.getDate() - this.dayIndex(yearStartForOffset.getDay()));
     const offsets = [];
     for (let m = 0; m < 12; m++) {
       const firstDayOfMonth = new Date(year, m, 1);
-      const daysSinceFirstSunday = Math.floor(
-        (firstDayOfMonth.getTime() - firstSunday.getTime()) / (24 * 60 * 60 * 1e3)
+      const daysSinceWeekStart = Math.floor(
+        (firstDayOfMonth.getTime() - firstWeekStart.getTime()) / (24 * 60 * 60 * 1e3)
       );
-      const colIndex = Math.floor(daysSinceFirstSunday / 7);
-      offsets.push(colIndex * COLUMN_WIDTH);
+      const colIndex = Math.floor(daysSinceWeekStart / 7);
+      offsets.push(colIndex * this.columnWidth);
     }
     return offsets;
+  }
+  /**
+   * Смещение дня недели относительно недели, начинающейся с weekStart.
+   * @param jsDay 0=Sunday..6=Saturday (как в JS getDay())
+   * @returns 0..6, где 0 = первый день недели
+   */
+  dayIndex(jsDay) {
+    const weekStart = this.plugin.settings.weekStart;
+    return (jsDay - weekStart + 7) % 7;
+  }
+  /**
+   * Подпись дня недели для строки сетки (row = позиция дня в неделе).
+   * Показывает подписи на строках Sun/Tue/Thu/Sat (как GitHub), с учётом недели, начинающейся с weekStart.
+   */
+  weekdayLabel(labels, row) {
+    if (labels.length !== 7)
+      return "";
+    const shownRows = /* @__PURE__ */ new Set([0, 2, 4, 6]);
+    if (!shownRows.has(row))
+      return "";
+    const jsDay = (row + this.plugin.settings.weekStart) % 7;
+    return labels[jsDay];
   }
   /** Сетка ячеек */
   buildCalendarGrid(calGrid, year, colors, dataMap) {
     const yearStart = new Date(year, 0, 1);
     const yearEnd = new Date(year, 11, 31);
     const gridStart = new Date(yearStart);
-    gridStart.setDate(yearStart.getDate() - yearStart.getDay());
+    gridStart.setDate(yearStart.getDate() - this.dayIndex(yearStart.getDay()));
     const gridEnd = new Date(yearEnd);
-    if (yearEnd.getDay() !== 6) {
-      gridEnd.setDate(yearEnd.getDate() + (6 - yearEnd.getDay()));
-    }
+    const endOffset = this.dayIndex(yearEnd.getDay());
+    gridEnd.setDate(yearEnd.getDate() + (6 - endOffset));
     const toLocalDateString = (d) => {
       const y = d.getFullYear();
       const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -1180,19 +1474,63 @@ var HeatmapSettingTab = class extends import_obsidian3.PluginSettingTab {
         await this.plugin.saveSettings();
       })
     );
+    new import_obsidian3.Setting(containerEl).setName(t("settings.weekStart.name")).setDesc(t("settings.weekStart.desc")).addDropdown(
+      (dropdown) => dropdown.addOption("0", t("settings.weekStart.sunday")).addOption("1", t("settings.weekStart.monday")).setValue(String(this.plugin.settings.weekStart)).onChange(async (value) => {
+        this.plugin.settings.weekStart = parseInt(value, 10);
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian3.Setting(containerEl).setName(t("settings.cellSize.name")).setDesc(t("settings.cellSize.desc")).addSlider(
+      (slider) => slider.setLimits(6, 16, 1).setValue(this.plugin.settings.boxSize).setDynamicTooltip().onChange(async (value) => {
+        this.plugin.settings.boxSize = value;
+        await this.plugin.saveSettings();
+      })
+    );
+    new import_obsidian3.Setting(containerEl).setName(t("settings.cellGap.name")).setDesc(t("settings.cellGap.desc")).addSlider(
+      (slider) => slider.setLimits(0, 6, 1).setValue(this.plugin.settings.boxGap).setDynamicTooltip().onChange(async (value) => {
+        this.plugin.settings.boxGap = value;
+        await this.plugin.saveSettings();
+      })
+    );
   }
   /** 颜色设置 */
   renderColorSettings(containerEl) {
     new import_obsidian3.Setting(containerEl).setName(t("colors.title")).setHeading();
+    new import_obsidian3.Setting(containerEl).setName(t("colors.accentToggle.name")).setDesc(t("colors.accentToggle.desc")).addToggle(
+      (toggle) => toggle.setValue(this.plugin.settings.useAccentColors).onChange(async (value) => {
+        this.plugin.settings.useAccentColors = value;
+        await this.plugin.saveSettings();
+        this.display();
+      })
+    );
+    if (this.plugin.settings.useAccentColors) {
+      return;
+    }
     containerEl.createEl("p", {
       text: t("colors.desc"),
       cls: "setting-item-description"
     });
     const colorLabels = tArray("colors.labels");
+    containerEl.createEl("p", {
+      text: t("colors.lightDesc"),
+      cls: "setting-item-description"
+    });
     this.plugin.settings.colors.forEach((color, index) => {
-      new import_obsidian3.Setting(containerEl).setName(`${t("colors.title")} ${index + 1}\uFF1A${colorLabels[index]}`).addColorPicker(
+      new import_obsidian3.Setting(containerEl).setName(`${t("colors.light")} ${index + 1}\uFF1A${colorLabels[index]}`).addColorPicker(
         (picker) => picker.setValue(color).onChange(async (value) => {
           this.plugin.settings.colors[index] = value;
+          await this.plugin.saveSettings();
+        })
+      );
+    });
+    containerEl.createEl("p", {
+      text: t("colors.darkDesc"),
+      cls: "setting-item-description"
+    });
+    this.plugin.settings.colorsDark.forEach((color, index) => {
+      new import_obsidian3.Setting(containerEl).setName(`${t("colors.dark")} ${index + 1}\uFF1A${colorLabels[index]}`).addColorPicker(
+        (picker) => picker.setValue(color).onChange(async (value) => {
+          this.plugin.settings.colorsDark[index] = value;
           await this.plugin.saveSettings();
         })
       );
@@ -1992,6 +2330,7 @@ var NoteHeatmapPlugin = class extends import_obsidian6.Plugin {
   constructor() {
     super(...arguments);
     this.embeddedHeatmaps = /* @__PURE__ */ new Set();
+    this.accentColor = null;
   }
   async onload() {
     await this.loadSettings();
@@ -2000,6 +2339,7 @@ var NoteHeatmapPlugin = class extends import_obsidian6.Plugin {
     this.gitService = new GitService(this);
     registerEmbedCodeblock(this);
     this.app.workspace.onLayoutReady(() => {
+      void this.loadAccentColor();
       void this.checkAndAutoEnableGitDiff();
       void this.dataCache.initialize().catch((err) => {
         console.error("[NoteHeatmap] \u7F13\u5B58\u521D\u59CB\u5316\u5931\u8D25:", err);
@@ -2008,6 +2348,11 @@ var NoteHeatmapPlugin = class extends import_obsidian6.Plugin {
     this.registerView(
       HEATMAP_VIEW_TYPE,
       (leaf) => new HeatmapView(leaf, this)
+    );
+    this.registerEvent(
+      this.app.workspace.on("css-change", () => {
+        this.refreshViews();
+      })
     );
     this.addRibbonIcon("calendar-with-checkmark", "Note heatmap", () => {
       void this.activateView();
@@ -2032,6 +2377,24 @@ var NoteHeatmapPlugin = class extends import_obsidian6.Plugin {
   }
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+  /**
+   * Читает акцентный цвет пользователя из .obsidian/appearance.json
+   * (поле accentColor) и сохраняет в this.accentColor.
+   */
+  async loadAccentColor() {
+    try {
+      const adapter = this.app.vault.adapter;
+      const configDir = this.app.vault.configDir || ".obsidian";
+      const content = await adapter.read(`${configDir}/appearance.json`);
+      const data = JSON.parse(content);
+      if (data.accentColor) {
+        this.accentColor = data.accentColor;
+        console.debug("[NoteHeatmap] accentColor from appearance.json:", this.accentColor);
+      }
+    } catch (err) {
+      console.debug("[NoteHeatmap] Failed to read accent color:", err);
+    }
   }
   async saveSettings() {
     await this.saveData(this.settings);
