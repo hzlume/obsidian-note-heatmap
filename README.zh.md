@@ -1,7 +1,6 @@
 # Obsidian Note Heatmap
 
-[![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22note-heatmap%22%5D.downloads&url=https%3A%2F%2Freleases.obsidian.md%2Fstats%2Fadopter)](https://obsidian.md/plugins?id=note-heatmap)
-[![License](https://img.shields.io/github/license/hzlume/obsidian-note-heatmap?style=flat)](LICENSE)
+[![License](https://img.shields.io/github/license/reimithebird/obsidian-note-heatmap?style=flat)](LICENSE)
 
 > 以 GitHub 风格热力图可视化笔记修改活动，追踪写作习惯，发现知识管理中的模式。
 
@@ -35,6 +34,10 @@ last-modified:
 **Git Diff**（可选）— 快速查看单文件每次提交/每日/每月的 Git 变更。需要 [Obsidian Git](https://github.com/denolehov/obsidian-git) 和 [Version History Diff](https://github.com/kometenstaub/obsidian-version-history-diff) 两个插件的支持（软依赖——不装也不影响热力图核心功能）。
 
 **国际化** — 支持中文和英文，自动检测 Obsidian 语言设置。
+
+**主题自适应** — Obsidian 切换主题时自动在浅色/深色专用调色板之间切换，保证任何主题下都清晰可读。也可以选择根据 Obsidian 强调色自动生成调色板，替代默认绿色。
+
+**自定义布局** — 可设置一周起始日（周日/周一），并调整日期格子的大小与间距。
 
 ---
 
@@ -70,6 +73,17 @@ last-modified:
 | 目标字段 | 用于统计修改日期的 frontmatter 字段 | `last-modified` |
 | 创建时间字段 | 用于判断新增笔记的 frontmatter 字段 | `created` |
 | 目标文件夹 | 统计哪个文件夹下的笔记 | *（空 - 整个仓库）* |
+
+### 外观
+
+| 设置项 | 说明 | 默认值 |
+|-------|------|--------|
+| 使用主题强调色 | 根据 Obsidian 强调色生成 5 阶调色板，替代默认绿色 | 关闭 |
+| 一周起始日 | 一周从星期几开始 | 周日 |
+| 格子大小 | 日期格子的边长（像素） | 10 |
+| 格子间距 | 日期格子之间的间距（像素） | 2 |
+
+启用「使用主题强调色」时，无修改（空）格保持中性灰，活动量越深越接近强调色。浅色与深色模式分别配置调色板，切换 Obsidian 主题时热力图自动重新渲染。
 
 ### 支持的日期格式
 

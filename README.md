@@ -1,7 +1,6 @@
 # Obsidian Note Heatmap
 
-[![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22note-heatmap%22%5D.downloads&url=https%3A%2F%2Freleases.obsidian.md%2Fstats%2Fadopter)](https://obsidian.md/plugins?id=note-heatmap)
-[![License](https://img.shields.io/github/license/hzlume/obsidian-note-heatmap?style=flat)](LICENSE)
+[![License](https://img.shields.io/github/license/reimithebird/obsidian-note-heatmap?style=flat)](LICENSE)
 
 > Visualize your note activity with a GitHub-style heatmap. Track writing habits and discover patterns in your knowledge management.
 
@@ -36,6 +35,10 @@ A note edited on three different days contributes to all three days — not just
 
 **i18n** — Chinese and English. Auto-detects Obsidian language setting.
 
+**Theme adaptive** — Automatically switches between dedicated light and dark palettes when the Obsidian theme changes, so the heatmap stays legible in any theme. Optionally generate the palette from your Obsidian accent color instead of the default greens.
+
+**Custom layout** — Choose the first day of the week (Sunday or Monday) and tune the day-cell size and gap to match your taste.
+
 ---
 
 ## Installation
@@ -69,6 +72,17 @@ For early access before official approval:
 | Target Field | Frontmatter field for modification dates | `last-modified` |
 | Created Field | Frontmatter field for creation dates | `created` |
 | Target Folder | Folder to track | *(empty - whole vault)* |
+
+### Appearance
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| Use theme accent color | Build the 5-level palette from your Obsidian accent color instead of the custom greens | off |
+| First day of week | Which day the week starts on | Sunday |
+| Cell size | Day-cell side length (px) | 10 |
+| Cell gap | Space between day cells (px) | 2 |
+
+When **Use theme accent color** is on, empty (no-edit) cells stay neutral grey and activity deepens toward your accent color. Palettes are defined separately for light and dark mode; switching the Obsidian theme re-renders the heatmap automatically.
 
 ### Supported Date Formats
 
@@ -155,6 +169,18 @@ last-modified: <% tp.date.now("YYYY-MM-DD") %>
 ```
 ---
 ## Screenshots
+
+### Light theme with accent palette
+
+![Light theme with accent palette](./assets/images/heatmap-light-accent-en.png)
+
+The 5-level palette is generated from your Obsidian accent color. Empty (no-edit) cells are neutral grey, activity deepens toward the accent.
+
+### Dark theme with default palette
+
+![Dark theme with default palette](./assets/images/heatmap-dark-default-en.png)
+
+In dark mode the plugin switches to a dedicated dark palette automatically (or a dark accent-based palette if enabled). The heatmap re-renders itself when you change the Obsidian theme.
 
 ### Annual Heatmap
 
