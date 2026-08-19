@@ -126,10 +126,11 @@ Enable in settings after installing [Obsidian Git](https://github.com/denolehov/
 
 This fork adds the ability to embed a heatmap directly inside any note using a code block:
 
-```markdown
-```note-heatmap
-```
-```
+> 
+> ```note-heatmap
+> year: 2026
+> ```
+> 
 
 Optionally pin the starting year:
 
