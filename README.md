@@ -108,6 +108,25 @@ Enable in settings after installing [Obsidian Git](https://github.com/denolehov/
 - **Open yearly note**: Click the year number (requires yearly note enabled)
 - **Refresh**: Click the refresh button
 
+### Embed in a note
+
+This fork adds the ability to embed a heatmap directly inside any note using a code block:
+
+```markdown
+```note-heatmap
+```
+```
+
+Optionally pin the starting year:
+
+```markdown
+```note-heatmap
+year: 2026
+```
+```
+
+Embedded heatmaps stay in sync with the data cache and update automatically. Year navigation and day/month drill-down work exactly like in the standalone view.
+
 ---
 
 ## Plugin Integration
@@ -187,6 +206,8 @@ src/                  # Source code
 ├── settings.ts       # Settings interface & defaults
 ├── settingTab.ts     # Settings UI
 ├── heatmapView.ts    # Heatmap view (main UI)
+├── heatmapRenderer.ts# Reusable heatmap renderer (view + embed)
+├── embed.ts          # Code-block processor (in-note embedding)
 ├── dataCache.ts      # Data cache (incremental updates)
 ├── gitService.ts     # Git service (via Obsidian Git API)
 ├── vhdUtils.ts       # Version History Diff utilities
@@ -194,8 +215,6 @@ src/                  # Source code
     ├── index.ts
     ├── en.ts
     └── zh.ts
-
-styles.css            # Plugin styles (auto-copied to vault)
 ```
 
 ---

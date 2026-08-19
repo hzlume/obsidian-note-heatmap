@@ -63,9 +63,12 @@ __export(main_exports, {
   default: () => NoteHeatmapPlugin
 });
 module.exports = __toCommonJS(main_exports);
-var import_obsidian4 = require("obsidian");
+var import_obsidian6 = require("obsidian");
 
 // src/heatmapView.ts
+var import_obsidian2 = require("obsidian");
+
+// src/heatmapRenderer.ts
 var import_obsidian = require("obsidian");
 
 // src/i18n/en.ts
@@ -461,98 +464,22 @@ function selectCommitInList(listContainer, targetHash) {
   return null;
 }
 
-// src/heatmapView.ts
-var HEATMAP_VIEW_TYPE = "note-heatmap-view";
+// src/heatmapRenderer.ts
 var BOX_SIZE = 12;
 var GAP = 3;
 var COLUMN_WIDTH = BOX_SIZE + GAP;
-var HeatmapView = class extends import_obsidian.ItemView {
-  constructor(leaf, plugin) {
-    super(leaf);
+var HeatmapRenderer = class {
+  constructor(plugin, year) {
     this.tooltipDiv = null;
-    this.renderDebounceTimer = null;
-    this.isRendering = false;
+    this.container = null;
     this.plugin = plugin;
-    this.currentYear = new Date().getFullYear();
+    this.currentYear = year != null ? year : new Date().getFullYear();
   }
   /**
-   * 格式化日期路径
-   * 支持：YYYY（年）、MM（月）、DD（日）
-   * 方括号 [text] 中的内容原样输出
-   * 使用 Moment.js 处理，与 Periodic Notes 保持一致
+   * Рендерит тепловую карту в указанный контейнер.
    */
-  formatDatePath(format, year, month, day) {
-    const m = window.moment();
-    m.year(Number(year));
-    m.month(Number(month) - 1);
-    if (day !== void 0) {
-      m.date(Number(day));
-    }
-    return m.format(format);
-  }
-  getViewType() {
-    return HEATMAP_VIEW_TYPE;
-  }
-  getDisplayText() {
-    return t("view.title");
-  }
-  getIcon() {
-    return "calendar-with-checkmark";
-  }
-  async onOpen() {
-    try {
-      await this.plugin.dataCache.waitForReady();
-      setTimeout(() => {
-        this.render();
-      }, 0);
-    } catch (err) {
-      console.error("[NoteHeatmap] Failed to wait for cache initialization:", err);
-      this.render();
-    }
-  }
-  onClose() {
-    if (this.tooltipDiv) {
-      this.tooltipDiv.remove();
-      this.tooltipDiv = null;
-    }
-    if (this.renderDebounceTimer) {
-      clearTimeout(this.renderDebounceTimer);
-    }
-  }
-  /**
-   * 防抖渲染 - 避免频繁更新造成卡顿
-   */
-  render() {
-    if (this.isRendering) {
-      if (this.renderDebounceTimer) {
-        clearTimeout(this.renderDebounceTimer);
-      }
-      this.renderDebounceTimer = window.setTimeout(() => {
-        void this.doRender();
-      }, 100);
-      return;
-    }
-    if (this.renderDebounceTimer) {
-      clearTimeout(this.renderDebounceTimer);
-    }
-    this.renderDebounceTimer = window.setTimeout(() => {
-      void this.doRender();
-    }, 50);
-  }
-  doRender() {
-    if (this.isRendering)
-      return;
-    this.isRendering = true;
-    try {
-      this.performRender();
-    } catch (err) {
-      console.error("[NoteHeatmap] Render failed:", err);
-    } finally {
-      this.isRendering = false;
-    }
-  }
-  performRender() {
-    const container = this.containerEl.children[1];
+  render(container) {
+    this.container = container;
     container.empty();
     container.addClass("note-heatmap-container");
     const year = this.currentYear;
@@ -568,12 +495,32 @@ var HeatmapView = class extends import_obsidian.ItemView {
     this.bindMonthEvents(monthElements, year, monthlyData, resPanel);
     this.bindGridEvents(calGrid, dataMap, resPanel);
   }
-  /** 创建包装容器 */
+  /**
+   * Перерендерить в сохранённый контейнер (например при обновлении данных).
+   */
+  rerender() {
+    if (this.container) {
+      this.render(this.container);
+    }
+  }
+  /**
+   * Форматирование пути по шаблону (YYYY/MM/DD + защита [text]).
+   */
+  formatDatePath(format, year, month, day) {
+    const m = window.moment();
+    m.year(Number(year));
+    m.month(Number(month) - 1);
+    if (day !== void 0) {
+      m.date(Number(day));
+    }
+    return m.format(format);
+  }
+  /** Создание обёртки */
   createWrapper(container) {
     const wrapper = container.createDiv({ cls: "heatmap-plugin-wrapper note-heatmap-flex-col note-heatmap-width-full" });
     return wrapper;
   }
-  /** 渲染头部（年份导航） */
+  /** Рендер шапки (навигация по годам) */
   renderHeader(wrapper, year) {
     const header = wrapper.createDiv({ cls: "heatmap-header" });
     const yearNav = header.createDiv({ cls: "year-nav" });
@@ -583,7 +530,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
     header.createEl("button", { cls: "heatmap-refresh-btn", text: t("view.header.refresh") });
     return header;
   }
-  /** 渲染热力图网格 */
+  /** Рендер сетки тепловой карты */
   renderHeatmap(wrapper, year, colors, dataMap, monthOffsets) {
     const scrollContainer = wrapper.createDiv({ cls: "heatmap-scroll-container" });
     const heatmapSection = scrollContainer.createDiv({ cls: "heatmap-section" });
@@ -607,14 +554,14 @@ var HeatmapView = class extends import_obsidian.ItemView {
     this.buildCalendarGrid(calGrid, year, colors, dataMap);
     return { calGrid, monthElements };
   }
-  /** 渲染结果面板（初始状态） */
+  /** Рендер панели результатов (начальное состояние) */
   renderResultPanel(wrapper) {
     const resPanel = wrapper.createDiv({ attr: { id: "res-panel" } });
     const hint = resPanel.createEl("span", { cls: "note-heatmap-empty" });
     hint.setText(t("resultPanel.hint"));
     return resPanel;
   }
-  /** 绑定头部事件 */
+  /** Привязка событий шапки */
   bindHeaderEvents(header, year) {
     const currentYear = new Date().getFullYear();
     const prevBtn = header.querySelector(".prev-year");
@@ -626,12 +573,12 @@ var HeatmapView = class extends import_obsidian.ItemView {
     }
     prevBtn.addEventListener("click", () => {
       this.currentYear--;
-      this.render();
+      this.rerender();
     });
     nextBtn.addEventListener("click", () => {
       if (this.currentYear < currentYear) {
         this.currentYear++;
-        this.render();
+        this.rerender();
       }
     });
     if (this.plugin.settings.enableYearlyNote) {
@@ -643,10 +590,10 @@ var HeatmapView = class extends import_obsidian.ItemView {
       });
     }
     refreshBtn.addEventListener("click", () => {
-      void this.plugin.forceRefresh();
+      void this.plugin.forceRefresh().then(() => this.rerender());
     });
   }
-  /** 绑定年度笔记悬停预览 */
+  /** Ховер-превью годовой заметки */
   bindYearlyNoteHover(yearDisplay, year) {
     const yearStr = String(year);
     let filePath = this.formatDatePath(this.plugin.settings.yearlyNoteFormat, yearStr, "01", "01");
@@ -657,7 +604,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
       filePath += ".md";
     }
     yearDisplay.addEventListener("mouseover", (e) => {
-      this.app.workspace.trigger("hover-link", {
+      this.plugin.app.workspace.trigger("hover-link", {
         event: e,
         source: "preview",
         hoverParent: yearDisplay,
@@ -667,12 +614,12 @@ var HeatmapView = class extends import_obsidian.ItemView {
       });
     });
   }
-  /** 绑定月份标签事件 */
+  /** Привязка событий месяцев */
   bindMonthEvents(monthElements, year, monthlyData, resPanel) {
     const { totals, notes, newCounts } = monthlyData;
     for (let i = 0; i < 12; i++) {
       const el = monthElements[i];
-      const tooltipText = `\u{1F4A1} ${year}-M${String(i + 1).padStart(2, "0")} ${t("view.tooltip.edits", { count: totals[i] })}, ${t("view.tooltip.new", { count: newCounts[i] })}`;
+      const tooltipText = `${year}-M${String(i + 1).padStart(2, "0")} ${t("view.tooltip.edits", { count: totals[i] })}, ${t("view.tooltip.new", { count: newCounts[i] })}`;
       el.addEventListener("mouseenter", () => this.showTooltip(el, tooltipText));
       el.addEventListener("mouseleave", () => this.hideTooltip());
       el.addEventListener("click", () => {
@@ -681,7 +628,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
       });
     }
   }
-  /** 绑定网格点击事件 */
+  /** Привязка кликов по ячейкам сетки */
   bindGridEvents(calGrid, dataMap, resPanel) {
     calGrid.addEventListener("click", (e) => {
       const target = e.target;
@@ -695,7 +642,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
       this.displayDayPanel(resPanel, dateStr, notes, dataMap, () => this.resetPanel(resPanel));
     });
   }
-  /** 显示 tooltip */
+  /** Показать тултип */
   showTooltip(el, text) {
     if (!this.tooltipDiv) {
       this.tooltipDiv = document.createElement("div");
@@ -710,31 +657,26 @@ var HeatmapView = class extends import_obsidian.ItemView {
     });
     this.tooltipDiv.addClass("visible");
   }
-  /** 隐藏 tooltip */
+  /** Скрыть тултип */
   hideTooltip() {
     if (this.tooltipDiv)
       this.tooltipDiv.removeClass("visible");
   }
-  /** 重置结果面板 */
+  /** Сброс панели результатов */
   resetPanel(resPanel) {
     resPanel.empty();
     const span = resPanel.createEl("span", { cls: "note-heatmap-empty" });
     span.setText(t("resultPanel.hint"));
   }
-  /**
-   * 在 Version History Diff 中打开文件
-   * @param note 笔记条目
-   * @param dateStr 日期字符串（可选，用于选中当日提交）
-   * @param yearMonth 年月字符串（可选，用于选中当月提交）
-   */
+  /** Открыть diff в VHD */
   async openInVHD(note, dateStr, yearMonth) {
-    const file = this.app.vault.getAbstractFileByPath(note.path);
+    const file = this.plugin.app.vault.getAbstractFileByPath(note.path);
     if (!(file instanceof import_obsidian.TFile)) {
       new import_obsidian.Notice(t("git.noCommits"));
       return;
     }
     try {
-      const vhdPlugin = this.app.plugins.plugins["obsidian-version-history-diff"];
+      const vhdPlugin = this.plugin.app.plugins.plugins["obsidian-version-history-diff"];
       if (!vhdPlugin) {
         new import_obsidian.Notice(t("git.vhdNotInstalled"));
         return;
@@ -765,11 +707,11 @@ var HeatmapView = class extends import_obsidian.ItemView {
     a.addEventListener("click", (mouseEvt) => {
       mouseEvt.preventDefault();
       const useNewLeaf = mouseEvt.ctrlKey || mouseEvt.metaKey;
-      void this.app.workspace.openLinkText(path, "", useNewLeaf);
+      void this.plugin.app.workspace.openLinkText(path, "", useNewLeaf);
     });
     a.addEventListener("mouseover", (evt) => {
       const target = evt.target;
-      this.app.workspace.trigger("hover-link", {
+      this.plugin.app.workspace.trigger("hover-link", {
         event: evt,
         source: "preview",
         hoverParent: target,
@@ -805,7 +747,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
     };
     renderList(searchQuery.value, sortKey.value, sortDesc.value);
   }
-  /** 计算月份统计数据 */
+  /** Статистика месяца */
   calcMonthStats(notesArray, monthIndex, year) {
     const firstDayOfMonth = new Date(year, monthIndex, 1);
     const lastDayOfMonth = new Date(year, monthIndex + 1, 0);
@@ -817,7 +759,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
     }).length;
     return { newCount, monthStr: String(monthIndex + 1).padStart(2, "0") };
   }
-  /** 构建笔记修改天数映射 */
+  /** Карта «заметка → число активных дней» за месяц */
   buildNoteModDaysMap(year, monthIndex) {
     const yearData = this.plugin.dataCache.getYearData(year);
     const noteModDaysMap = /* @__PURE__ */ new Map();
@@ -831,7 +773,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
     }
     return noteModDaysMap;
   }
-  /** 渲染面板标题栏（月份/日期面板共用） */
+  /** Заголовок панели (месяц/день) */
   renderPanelHeader(resPanel, titleText, totalCount, newCount, onClose, type, year, monthStr, dayStr) {
     const titleDiv = resPanel.createDiv({ cls: "note-heatmap-title-row" });
     const leftDiv = titleDiv.createDiv({ cls: "title-left" });
@@ -857,18 +799,18 @@ var HeatmapView = class extends import_obsidian.ItemView {
       onClose();
     });
   }
-  /** 构建周期笔记路径 */
+  /** Построить путь заметки */
   buildNotePath(format, folder, year, monthStr, dayStr) {
     const path = this.formatDatePath(format, String(year), monthStr, dayStr || "01");
     const fullPath = folder ? `${folder}/${path}` : path;
     return fullPath.endsWith(".md") ? fullPath : `${fullPath}.md`;
   }
-  /** 渲染空消息 */
+  /** Пустое сообщение */
   renderEmptyMessage(resPanel, message) {
     const emptyDiv = resPanel.createDiv({ cls: "note-heatmap-empty" });
     emptyDiv.setText(message);
   }
-  /** 渲染搜索和排序控件 */
+  /** Поиск и сортировка */
   renderSearchAndSortControls(resPanel, onChange) {
     const state = {
       searchQuery: { value: "" },
@@ -918,14 +860,14 @@ var HeatmapView = class extends import_obsidian.ItemView {
     updateSortButtons();
     return state;
   }
-  /** 过滤笔记 */
+  /** Фильтр заметок */
   filterNotes(notes, query) {
     if (!query.trim())
       return notes;
     const lowerQuery = query.toLowerCase();
     return notes.filter((n) => n.name.toLowerCase().includes(lowerQuery));
   }
-  /** 排序笔记 */
+  /** Сортировка заметок */
   sortNotes(notes, key, desc, noteModDaysMap) {
     const sorted = [...notes].sort((a, b) => {
       if (key === "name")
@@ -939,7 +881,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
     });
     return desc ? sorted.reverse() : sorted;
   }
-  /** 渲染笔记列表 */
+  /** Список заметок (для месяца) */
   renderNoteList(ul, notes, year, monthIndex, noteModDaysMap, onVhdClick) {
     ul.empty();
     const firstDayOfMonth = new Date(year, monthIndex, 1);
@@ -969,9 +911,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
       }
     });
   }
-  /**
-   * 准备月度统计数据
-   */
+  /** Месячная статистика */
   prepareMonthlyData(dataMap) {
     const uniqueNotesMap = Array.from({ length: 12 }, () => /* @__PURE__ */ new Map());
     for (const [dateStr, notes2] of Object.entries(dataMap)) {
@@ -996,9 +936,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
     );
     return { totals, notes, newCounts };
   }
-  /**
-   * 计算月份标签的偏移量（像素）
-   */
+  /** Смещения месяцев */
   calcMonthOffsets(year) {
     const yearStartForOffset = new Date(year, 0, 1);
     const firstSunday = new Date(yearStartForOffset);
@@ -1014,9 +952,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
     }
     return offsets;
   }
-  /**
-   * 构建热力图网格方块
-   */
+  /** Сетка ячеек */
   buildCalendarGrid(calGrid, year, colors, dataMap) {
     const yearStart = new Date(year, 0, 1);
     const yearEnd = new Date(year, 11, 31);
@@ -1067,9 +1003,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
       cur.setDate(cur.getDate() + 1);
     }
   }
-  /**
-   * 显示日期面板（点击方块后的详情）
-   */
+  /** Панель дня */
   displayDayPanel(resPanel, dateStr, notes, dataMap, resetPanel) {
     resPanel.empty();
     resPanel.scrollTop = 0;
@@ -1084,7 +1018,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
     const uniqueNotes = this.deduplicateAndSortNotes(notes);
     this.renderSimpleNoteList(ul, uniqueNotes, dateStr);
   }
-  /** 去重并排序笔记 */
+  /** Дедупликация и сортировка */
   deduplicateAndSortNotes(notes) {
     const seen = /* @__PURE__ */ new Set();
     return notes.filter((n) => {
@@ -1094,7 +1028,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
       return true;
     }).sort((a, b) => b.modifiedTime - a.modifiedTime);
   }
-  /** 渲染简化笔记列表（日期面板用） */
+  /** Простой список заметок (для дня) */
   renderSimpleNoteList(ul, notes, dateStr) {
     ul.empty();
     notes.forEach((n) => {
@@ -1116,9 +1050,7 @@ var HeatmapView = class extends import_obsidian.ItemView {
       }
     });
   }
-  /**
-   * 打开周期笔记（年度/月度/每日）
-   */
+  /** Открыть периодическую заметку */
   async openPeriodicNote(type, year, month, day) {
     let folder;
     let format;
@@ -1146,10 +1078,10 @@ var HeatmapView = class extends import_obsidian.ItemView {
     if (!filePath.endsWith(".md")) {
       filePath += ".md";
     }
-    let file = this.app.vault.getAbstractFileByPath(filePath);
+    let file = this.plugin.app.vault.getAbstractFileByPath(filePath);
     if (!file) {
       try {
-        file = await this.app.vault.create(filePath, "");
+        file = await this.plugin.app.vault.create(filePath, "");
       } catch (err) {
         console.error(`[NoteHeatmap] Failed to create ${type} note:`, err);
         new import_obsidian.Notice(t("view.periodicNote.createFailed", { type }));
@@ -1157,13 +1089,53 @@ var HeatmapView = class extends import_obsidian.ItemView {
       }
     }
     if (file instanceof import_obsidian.TFile) {
-      await this.app.workspace.getLeaf().openFile(file);
+      await this.plugin.app.workspace.getLeaf().openFile(file);
     }
   }
 };
 
+// src/heatmapView.ts
+var HEATMAP_VIEW_TYPE = "note-heatmap-view";
+var HeatmapView = class extends import_obsidian2.ItemView {
+  constructor(leaf, plugin) {
+    super(leaf);
+    this.renderer = null;
+    this.plugin = plugin;
+  }
+  getViewType() {
+    return HEATMAP_VIEW_TYPE;
+  }
+  getDisplayText() {
+    return t("view.title");
+  }
+  getIcon() {
+    return "calendar-with-checkmark";
+  }
+  async onOpen() {
+    try {
+      await this.plugin.dataCache.waitForReady();
+      setTimeout(() => {
+        this.render();
+      }, 0);
+    } catch (err) {
+      console.error("[NoteHeatmap] Failed to wait for cache initialization:", err);
+      this.render();
+    }
+  }
+  async onClose() {
+    this.renderer = null;
+  }
+  render() {
+    const container = this.containerEl.children[1];
+    if (!this.renderer) {
+      this.renderer = new HeatmapRenderer(this.plugin);
+    }
+    this.renderer.render(container);
+  }
+};
+
 // src/settingTab.ts
-var import_obsidian2 = require("obsidian");
+var import_obsidian3 = require("obsidian");
 function createLink(text, href) {
   const a = document.createElement("a");
   a.textContent = text;
@@ -1172,7 +1144,7 @@ function createLink(text, href) {
   a.rel = "noopener";
   return a;
 }
-var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
+var HeatmapSettingTab = class extends import_obsidian3.PluginSettingTab {
   constructor(app, plugin) {
     super(app, plugin);
     this.plugin = plugin;
@@ -1180,7 +1152,7 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
   display() {
     const { containerEl } = this;
     containerEl.empty();
-    new import_obsidian2.Setting(containerEl).setName(t("settings.title")).setHeading();
+    new import_obsidian3.Setting(containerEl).setName(t("settings.title")).setHeading();
     this.renderBasicSettings(containerEl);
     this.renderColorSettings(containerEl);
     this.renderPeriodicNoteSettings(containerEl);
@@ -1189,20 +1161,20 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
   }
   /** 基础设置 */
   renderBasicSettings(containerEl) {
-    new import_obsidian2.Setting(containerEl).setName(t("settings.targetField.name")).setDesc(t("settings.targetField.desc")).addText(
+    new import_obsidian3.Setting(containerEl).setName(t("settings.targetField.name")).setDesc(t("settings.targetField.desc")).addText(
       (text) => text.setPlaceholder("Last modified").setValue(this.plugin.settings.targetField).onChange(async (value) => {
         this.plugin.settings.targetField = value.trim();
         await this.plugin.saveSettings();
       })
     );
-    new import_obsidian2.Setting(containerEl).setName(t("settings.createdField.name")).setDesc(t("settings.createdField.desc")).addText(
+    new import_obsidian3.Setting(containerEl).setName(t("settings.createdField.name")).setDesc(t("settings.createdField.desc")).addText(
       (text) => text.setPlaceholder("Created").setValue(this.plugin.settings.createdField).onChange(async (value) => {
         this.plugin.settings.createdField = value.trim();
         await this.plugin.saveSettings();
         this.plugin.dataCache.updateSettings(this.plugin.settings.targetField, this.plugin.settings.targetFolder);
       })
     );
-    new import_obsidian2.Setting(containerEl).setName(t("settings.targetFolder.name")).setDesc(t("settings.targetFolder.desc")).addText(
+    new import_obsidian3.Setting(containerEl).setName(t("settings.targetFolder.name")).setDesc(t("settings.targetFolder.desc")).addText(
       (text) => text.setPlaceholder("").setValue(this.plugin.settings.targetFolder).onChange(async (value) => {
         this.plugin.settings.targetFolder = value.trim().replace(/\/$/, "");
         await this.plugin.saveSettings();
@@ -1211,14 +1183,14 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
   }
   /** 颜色设置 */
   renderColorSettings(containerEl) {
-    new import_obsidian2.Setting(containerEl).setName(t("colors.title")).setHeading();
+    new import_obsidian3.Setting(containerEl).setName(t("colors.title")).setHeading();
     containerEl.createEl("p", {
       text: t("colors.desc"),
       cls: "setting-item-description"
     });
     const colorLabels = tArray("colors.labels");
     this.plugin.settings.colors.forEach((color, index) => {
-      new import_obsidian2.Setting(containerEl).setName(`${t("colors.title")} ${index + 1}\uFF1A${colorLabels[index]}`).addColorPicker(
+      new import_obsidian3.Setting(containerEl).setName(`${t("colors.title")} ${index + 1}\uFF1A${colorLabels[index]}`).addColorPicker(
         (picker) => picker.setValue(color).onChange(async (value) => {
           this.plugin.settings.colors[index] = value;
           await this.plugin.saveSettings();
@@ -1228,7 +1200,7 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
   }
   /** 周期笔记设置 */
   renderPeriodicNoteSettings(containerEl) {
-    new import_obsidian2.Setting(containerEl).setName(t("periodicNotes.title")).setHeading();
+    new import_obsidian3.Setting(containerEl).setName(t("periodicNotes.title")).setHeading();
     this.injectStyles();
     const periodicTypes = ["daily", "monthly", "yearly"];
     for (const type of periodicTypes) {
@@ -1241,7 +1213,7 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
     const folderKey = `${type}NoteFolder`;
     const formatKey = `${type}NoteFormat`;
     const isEnabled = this.plugin.settings[enableKey];
-    new import_obsidian2.Setting(containerEl).setName(t(`periodicNotes.${type}.name`)).setDesc(t(`periodicNotes.${type}.desc`)).setClass("heatmap-setting-group-header").addToggle(
+    new import_obsidian3.Setting(containerEl).setName(t(`periodicNotes.${type}.name`)).setDesc(t(`periodicNotes.${type}.desc`)).setClass("heatmap-setting-group-header").addToggle(
       (toggle) => toggle.setValue(isEnabled).onChange(async (value) => {
         this.plugin.settings[enableKey] = value;
         await this.plugin.saveSettings();
@@ -1269,7 +1241,7 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
   }
   /** 渲染文本设置项 */
   renderTextSetting(containerEl, key, value, onChange) {
-    new import_obsidian2.Setting(containerEl).setName(t(`${key}.name`)).setDesc(t(`${key}.desc`)).setClass("heatmap-setting-subitem").addText(
+    new import_obsidian3.Setting(containerEl).setName(t(`${key}.name`)).setDesc(t(`${key}.desc`)).setClass("heatmap-setting-subitem").addText(
       (text) => text.setPlaceholder(t(`${key}.placeholder`)).setValue(value).onChange(async (newValue) => {
         onChange(newValue);
         await this.plugin.saveSettings();
@@ -1286,12 +1258,12 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
   /** Git Diff 设置 */
   renderGitDiffSettings(containerEl) {
     var _a, _b, _c, _d;
-    new import_obsidian2.Setting(containerEl).setName(t("gitDiff.title")).setHeading();
+    new import_obsidian3.Setting(containerEl).setName(t("gitDiff.title")).setHeading();
     const gitAvailable = (_b = (_a = this.plugin.gitService) == null ? void 0 : _a.isGitPluginAvailable()) != null ? _b : false;
     const vhdAvailable = !!((_d = (_c = this.app.plugins) == null ? void 0 : _c.plugins) == null ? void 0 : _d["obsidian-version-history-diff"]);
     const allDependenciesMet = gitAvailable && vhdAvailable;
     const gitDiffDesc = this.buildGitDiffDesc(gitAvailable, vhdAvailable, allDependenciesMet);
-    new import_obsidian2.Setting(containerEl).setName(t("gitDiff.enable.name")).setDesc(gitDiffDesc).addToggle(
+    new import_obsidian3.Setting(containerEl).setName(t("gitDiff.enable.name")).setDesc(gitDiffDesc).addToggle(
       (toggle) => toggle.setValue(allDependenciesMet && this.plugin.settings.enableGitDiff).setDisabled(!allDependenciesMet).onChange(async (value) => {
         if (value && !allDependenciesMet) {
           toggle.setValue(false);
@@ -1324,7 +1296,7 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
   /** 重置按钮 */
   renderResetButton(containerEl) {
     containerEl.createEl("hr");
-    new import_obsidian2.Setting(containerEl).setName(t("reset.name")).addButton(
+    new import_obsidian3.Setting(containerEl).setName(t("reset.name")).addButton(
       (btn) => btn.setButtonText(t("reset.button")).setWarning().onClick(async () => {
         const { DEFAULT_SETTINGS: DEFAULT_SETTINGS2 } = await Promise.resolve().then(() => (init_settings(), settings_exports));
         Object.assign(this.plugin.settings, DEFAULT_SETTINGS2);
@@ -1339,7 +1311,7 @@ var HeatmapSettingTab = class extends import_obsidian2.PluginSettingTab {
 init_settings();
 
 // src/dataCache.ts
-var import_obsidian3 = require("obsidian");
+var import_obsidian4 = require("obsidian");
 function parseDateString(val) {
   if (!val)
     return null;
@@ -1361,7 +1333,7 @@ function parseDateString(val) {
     return isoMatch[1];
   return null;
 }
-var DataCache = class extends import_obsidian3.Component {
+var DataCache = class extends import_obsidian4.Component {
   constructor(plugin) {
     super();
     this.cache = {};
@@ -1427,28 +1399,28 @@ var DataCache = class extends import_obsidian3.Component {
     const vault = this.plugin.app.vault;
     this.registerEvent(
       metadataCache.on("changed", (file) => {
-        if (file instanceof import_obsidian3.TFile && this.isTargetFile(file)) {
+        if (file instanceof import_obsidian4.TFile && this.isTargetFile(file)) {
           this.handleFileChanged(file);
         }
       })
     );
     this.registerEvent(
       vault.on("create", (file) => {
-        if (file instanceof import_obsidian3.TFile && this.isTargetFile(file)) {
+        if (file instanceof import_obsidian4.TFile && this.isTargetFile(file)) {
           this.handleFileCreated(file);
         }
       })
     );
     this.registerEvent(
       vault.on("delete", (file) => {
-        if (file instanceof import_obsidian3.TFile && this.isTargetFile(file)) {
+        if (file instanceof import_obsidian4.TFile && this.isTargetFile(file)) {
           this.handleFileDeleted(file);
         }
       })
     );
     this.registerEvent(
       vault.on("rename", (file, oldPath) => {
-        if (file instanceof import_obsidian3.TFile && this.isTargetFile(file)) {
+        if (file instanceof import_obsidian4.TFile && this.isTargetFile(file)) {
           this.handleFileRenamed(file, oldPath);
         }
       })
@@ -1958,13 +1930,75 @@ var GitService = class {
   }
 };
 
+// src/embed.ts
+var import_obsidian5 = require("obsidian");
+var EmbeddedHeatmap = class extends import_obsidian5.MarkdownRenderChild {
+  constructor(plugin, el, source) {
+    super(el);
+    this.plugin = plugin;
+    this.year = this.parseYear(source);
+    this.renderer = new HeatmapRenderer(plugin, this.year);
+  }
+  onload() {
+    this.plugin.embeddedHeatmaps.add(this.renderer);
+    this.register(() => {
+      this.plugin.embeddedHeatmaps.delete(this.renderer);
+    });
+    void this.render();
+  }
+  /**
+   * Разобрать год из содержимого codeblock (опционально).
+   */
+  parseYear(source) {
+    if (!source)
+      return void 0;
+    const match = source.match(/^\s*year\s*[:=]\s*(\d{4})\s*$/im);
+    if (!match)
+      return void 0;
+    const year = parseInt(match[1], 10);
+    if (isNaN(year))
+      return void 0;
+    return year;
+  }
+  async render() {
+    try {
+      await this.plugin.dataCache.waitForReady();
+      this.renderer.render(this.containerEl);
+    } catch (err) {
+      console.error("[NoteHeatmap] Failed to render embedded heatmap:", err);
+    }
+  }
+};
+function registerEmbedCodeblock(plugin) {
+  plugin.registerMarkdownCodeBlockProcessor(
+    "note-heatmap",
+    (source, el, ctx) => {
+      const embedded = new EmbeddedHeatmap(plugin, el, source);
+      ctx.addChild(embedded);
+    }
+  );
+}
+function refreshEmbeddedHeatmaps(plugin) {
+  const registry = plugin.embeddedHeatmaps;
+  if (!registry)
+    return;
+  for (const renderer of registry) {
+    renderer.rerender();
+  }
+}
+
 // src/main.ts
-var NoteHeatmapPlugin = class extends import_obsidian4.Plugin {
+var NoteHeatmapPlugin = class extends import_obsidian6.Plugin {
+  constructor() {
+    super(...arguments);
+    this.embeddedHeatmaps = /* @__PURE__ */ new Set();
+  }
   async onload() {
     await this.loadSettings();
     this.dataCache = new DataCache(this);
     this.addChild(this.dataCache);
     this.gitService = new GitService(this);
+    registerEmbedCodeblock(this);
     this.app.workspace.onLayoutReady(() => {
       void this.checkAndAutoEnableGitDiff();
       void this.dataCache.initialize().catch((err) => {
@@ -2049,7 +2083,7 @@ var NoteHeatmapPlugin = class extends import_obsidian4.Plugin {
     }
   }
   /**
-   * 刷新所有热力图视图
+   * 刷新所有热力图视图（包括嵌入在笔记中的）
    */
   refreshViews() {
     const leaves = this.app.workspace.getLeavesOfType(HEATMAP_VIEW_TYPE);
@@ -2059,6 +2093,7 @@ var NoteHeatmapPlugin = class extends import_obsidian4.Plugin {
         view.render();
       }
     }
+    refreshEmbeddedHeatmaps(this);
   }
   /**
    * 强制刷新缓存并更新视图

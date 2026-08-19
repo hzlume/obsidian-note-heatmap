@@ -1,9 +1,9 @@
 {
   "id": "note-heatmap",
   "name": "Note Heatmap",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "minAppVersion": "0.15.0",
-  "description": "GitHub-style note activity heatmap with periodic notes and Git diff integration.",
+  "description": "GitHub-style note activity heatmap with periodic notes, Git diff integration and in-note embedding.",
   "author": "hzlume",
   "authorUrl": "https://github.com/hzlume",
   "helpUrl": "https://github.com/hzlume/obsidian-note-heatmap/blob/main/README.md",

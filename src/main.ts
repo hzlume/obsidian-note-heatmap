@@ -1,15 +1,18 @@
 import { Plugin, WorkspaceLeaf } from "obsidian";
 import { HeatmapView, HEATMAP_VIEW_TYPE } from "./heatmapView";
+import { HeatmapRenderer } from "./heatmapRenderer";
 import { HeatmapSettingTab } from "./settingTab";
 import { DEFAULT_SETTINGS, HeatmapSettings } from "./settings";
 import { DataCache } from "./dataCache";
 import { GitService } from "./gitService";
+import { registerEmbedCodeblock, refreshEmbeddedHeatmaps } from "./embed";
 import { t } from "./i18n";
 
 export default class NoteHeatmapPlugin extends Plugin {
   settings: HeatmapSettings;
   dataCache: DataCache;
   gitService: GitService;
+  embeddedHeatmaps = new Set<HeatmapRenderer>();
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -20,6 +23,9 @@ export default class NoteHeatmapPlugin extends Plugin {
 
     // 初始化 Git 服务
     this.gitService = new GitService(this);
+
+    // 注册 codeblock：встраивание тепловой карты в заметку
+    registerEmbedCodeblock(this);
 
     // 等 Obsidian 完全准备好后再初始化缓存和检测依赖插件
     // 确保 metadataCache 已经解析完所有文件，其他插件已加载
@@ -136,7 +142,7 @@ export default class NoteHeatmapPlugin extends Plugin {
   }
 
   /**
-   * 刷新所有热力图视图
+   * 刷新所有热力图视图（包括嵌入在笔记中的）
    */
   refreshViews(): void {
     const leaves = this.app.workspace.getLeavesOfType(HEATMAP_VIEW_TYPE);
@@ -146,6 +152,7 @@ export default class NoteHeatmapPlugin extends Plugin {
         view.render();
       }
     }
+    refreshEmbeddedHeatmaps(this);
   }
 
   /**
