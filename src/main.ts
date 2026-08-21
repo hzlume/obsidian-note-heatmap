@@ -28,10 +28,17 @@ export default class NoteHeatmapPlugin extends Plugin {
     // 注册 codeblock：встраивание тепловой карты в заметку
     registerEmbedCodeblock(this);
 
+    // Читаем акцентный цвет как можно раньше: рендер может случиться раньше onLayoutReady,
+    // а без акцента палитра уйдёт в ненадёжные CSS-фолбэки (темы портят их чёрным)
+    void this.loadAccentColor().then(() => {
+      // Если какие-то карты уже отрендерились без акцента — перерисуем с правильной палитрой
+      this.refreshViews();
+    });
+
     // 等 Obsidian 完全准备好后再初始化缓存和检测依赖插件
     // 确保 metadataCache 已经解析完所有文件，其他插件已加载
     this.app.workspace.onLayoutReady(() => {
-      // 读取 акцентный цвет из appearance.json
+      // accentColor уже читается в onload; здесь подстрахуемся повторным чтением
       void this.loadAccentColor();
 
       // 检测依赖插件，如果都安装了则默认开启 git diff

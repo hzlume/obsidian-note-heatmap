@@ -171,6 +171,8 @@ export class HeatmapRenderer {
   /**
    * Читает акцентный цвет Obsidian из CSS-переменных.
    * Проверяет несколько источников и элементов (body, html).
+   * Ахроматические значения (чёрный/серый — их любят ставить «сломанные» темы)
+   * отбраковываются: акцент обязан иметь заметную насыщенность.
    */
   private getAccentColor(): string | null {
     const elements: Element[] = [];
@@ -181,10 +183,16 @@ export class HeatmapRenderer {
       const style = window.getComputedStyle(el);
       for (const varName of varNames) {
         const value = style.getPropertyValue(varName).trim();
-        if (value) {
-          console.debug("[NoteHeatmap] accent var", varName, "=", value);
-          return value;
+        if (!value) continue;
+        const rgb = this.hexToRgb(value);
+        if (!rgb) continue;
+        const chroma = Math.max(rgb.r, rgb.g, rgb.b) - Math.min(rgb.r, rgb.g, rgb.b);
+        if (chroma < 16) {
+          console.debug("[NoteHeatmap] accent var rejected as achromatic", varName, "=", value);
+          continue;
         }
+        console.debug("[NoteHeatmap] accent var", varName, "=", value);
+        return value;
       }
     }
     return null;
@@ -192,6 +200,7 @@ export class HeatmapRenderer {
 
   /**
    * Читает HSL-компоненты акцента Obsidian: --accent-h/s/l.
+   * Возвращает null, если насыщенность слишком мала (серый/чёрный акцент).
    */
   private getAccentHsl(): { h: number; s: number; l: number } | null {
     const elements: Element[] = [];
@@ -203,6 +212,10 @@ export class HeatmapRenderer {
       const s = this.parseHslComponent(style.getPropertyValue("--accent-s"));
       const l = this.parseHslComponent(style.getPropertyValue("--accent-l"));
       if (h !== null && s !== null && l !== null) {
+        if (s < 5) {
+          console.debug("[NoteHeatmap] accent hsl rejected as achromatic", h, s, l);
+          return null;
+        }
         console.debug("[NoteHeatmap] accent hsl", h, s, l);
         return { h, s, l };
       }

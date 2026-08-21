@@ -654,6 +654,8 @@ var HeatmapRenderer = class {
   /**
    * Читает акцентный цвет Obsidian из CSS-переменных.
    * Проверяет несколько источников и элементов (body, html).
+   * Ахроматические значения (чёрный/серый — их любят ставить «сломанные» темы)
+   * отбраковываются: акцент обязан иметь заметную насыщенность.
    */
   getAccentColor() {
     const elements = [];
@@ -666,16 +668,25 @@ var HeatmapRenderer = class {
       const style = window.getComputedStyle(el);
       for (const varName of varNames) {
         const value = style.getPropertyValue(varName).trim();
-        if (value) {
-          console.debug("[NoteHeatmap] accent var", varName, "=", value);
-          return value;
+        if (!value)
+          continue;
+        const rgb = this.hexToRgb(value);
+        if (!rgb)
+          continue;
+        const chroma = Math.max(rgb.r, rgb.g, rgb.b) - Math.min(rgb.r, rgb.g, rgb.b);
+        if (chroma < 16) {
+          console.debug("[NoteHeatmap] accent var rejected as achromatic", varName, "=", value);
+          continue;
         }
+        console.debug("[NoteHeatmap] accent var", varName, "=", value);
+        return value;
       }
     }
     return null;
   }
   /**
    * Читает HSL-компоненты акцента Obsidian: --accent-h/s/l.
+   * Возвращает null, если насыщенность слишком мала (серый/чёрный акцент).
    */
   getAccentHsl() {
     const elements = [];
@@ -689,6 +700,10 @@ var HeatmapRenderer = class {
       const s = this.parseHslComponent(style.getPropertyValue("--accent-s"));
       const l = this.parseHslComponent(style.getPropertyValue("--accent-l"));
       if (h !== null && s !== null && l !== null) {
+        if (s < 5) {
+          console.debug("[NoteHeatmap] accent hsl rejected as achromatic", h, s, l);
+          return null;
+        }
         console.debug("[NoteHeatmap] accent hsl", h, s, l);
         return { h, s, l };
       }
@@ -2338,6 +2353,9 @@ var NoteHeatmapPlugin = class extends import_obsidian6.Plugin {
     this.addChild(this.dataCache);
     this.gitService = new GitService(this);
     registerEmbedCodeblock(this);
+    void this.loadAccentColor().then(() => {
+      this.refreshViews();
+    });
     this.app.workspace.onLayoutReady(() => {
       void this.loadAccentColor();
       void this.checkAndAutoEnableGitDiff();
