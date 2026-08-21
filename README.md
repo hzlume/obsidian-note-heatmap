@@ -1,3 +1,8 @@
+---
+edited:
+  - 2026-08-20T00:14:54+07:00
+created: 2026-08-19T20:24:07+07:00
+---
 # Obsidian Note Heatmap
 
 [![License](https://img.shields.io/github/license/reimithebird/obsidian-note-heatmap?style=flat)](LICENSE)
@@ -124,21 +129,13 @@ Enable in settings after installing [Obsidian Git](https://github.com/denolehov/
 
 ### Embed in a note
 
-This fork adds the ability to embed a heatmap directly inside any note using a code block:
+This fork adds the ability to embed a heatmap directly inside any note using a code block. The `year` parameter is optional — omit it to show the current year:
 
-> 
-> ```note-heatmap
-> year: 2026
-> ```
-> 
-
-Optionally pin the starting year:
-
-```markdown
+````markdown
 ```note-heatmap
 year: 2026
 ```
-```
+````
 
 Embedded heatmaps stay in sync with the data cache and update automatically. Year navigation and day/month drill-down work exactly like in the standalone view.
 
@@ -171,18 +168,6 @@ last-modified: <% tp.date.now("YYYY-MM-DD") %>
 ---
 ## Screenshots
 
-### Light theme with accent palette
-
-![Light theme with accent palette](./assets/images/heatmap-light-accent-en.png)
-
-The 5-level palette is generated from your Obsidian accent color. Empty (no-edit) cells are neutral grey, activity deepens toward the accent.
-
-### Dark theme with default palette
-
-![Dark theme with default palette](./assets/images/heatmap-dark-default-en.png)
-
-In dark mode the plugin switches to a dedicated dark palette automatically (or a dark accent-based palette if enabled). The heatmap re-renders itself when you change the Obsidian theme.
-
 ### Annual Heatmap
 
 ![Annual Heatmap](./assets/images/heatmap-overview-en.png)
@@ -212,6 +197,18 @@ Click a month label to see monthly activity statistics. Supports sorting by name
 ![Git Diff](./assets/images/git-diff-view-en.png)
 
 After installing Obsidian Git, click the "View Diff" button to see version history in Version History Diff.
+
+### Light theme with accent palette
+
+![Light theme with accent palette](./assets/images/heatmap-light-accent-en.png)
+
+The 5-level palette is generated from your Obsidian accent color. Empty (no-edit) cells are neutral grey, activity deepens toward the accent.
+
+### Dark theme with default palette
+
+![Dark theme with default palette](./assets/images/heatmap-dark-default-en.png)
+
+In dark mode the plugin switches to a dedicated dark palette automatically (or a dark accent-based palette if enabled). The heatmap re-renders itself when you change the Obsidian theme.
 
 ---
 

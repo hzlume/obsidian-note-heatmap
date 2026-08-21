@@ -123,6 +123,18 @@ last-modified:                        # 带时间的列表（多次修改）
 - **打开年度笔记**：点击年份数字（需启用年度笔记）
 - **刷新数据**：点击刷新按钮
 
+### 在笔记中嵌入
+
+本分支支持通过代码块把热力图直接嵌入任意笔记。参数 `year` 可选——省略时显示当前年份：
+
+````markdown
+```note-heatmap
+year: 2026
+```
+````
+
+嵌入的热力图与数据缓存保持同步并自动更新。年份导航和日/月下钻功能与独立视图完全一致。
+
 ---
 
 ## 插件集成
@@ -183,6 +195,18 @@ GitHub Contributions 风格的年度活动网格，5 级颜色深度表示活跃
 ![Git Diff](./assets/images/git-diff-view-zh.png)
 
 安装 Obsidian Git 后，点击「查看 Diff」按钮在 Version History Diff 中查看文件的版本变更历史。
+
+### 浅色主题与强调色配色
+
+![浅色主题与强调色配色](./assets/images/heatmap-light-accent-en.png)
+
+5 级调色板根据 Obsidian 强调色自动生成。无修改（空）格为中性灰，活跃度越深越接近强调色。
+
+### 深色主题与默认配色
+
+![深色主题与默认配色](./assets/images/heatmap-dark-default-en.png)
+
+深色模式下插件自动切换到专用深色调色板（启用强调色时则为深色强调色配色）。切换 Obsidian 主题时热力图会自动重新渲染。
 
 ---
 
