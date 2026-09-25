@@ -1,7 +1,11 @@
+---
+edited:
+  - 2026-08-20T00:14:54+07:00
+created: 2026-08-19T20:24:07+07:00
+---
 # Obsidian Note Heatmap
 
-[![Obsidian Downloads](https://img.shields.io/badge/dynamic/json?logo=obsidian&color=%23483699&label=downloads&query=%24%5B%22note-heatmap%22%5D.downloads&url=https%3A%2F%2Freleases.obsidian.md%2Fstats%2Fadopter)](https://obsidian.md/plugins?id=note-heatmap)
-[![License](https://img.shields.io/github/license/hzlume/obsidian-note-heatmap?style=flat)](LICENSE)
+[![License](https://img.shields.io/github/license/reimithebird/obsidian-note-heatmap?style=flat)](LICENSE)
 
 > Visualize your note activity with a GitHub-style heatmap. Track writing habits and discover patterns in your knowledge management.
 
@@ -36,6 +40,10 @@ A note edited on three different days contributes to all three days — not just
 
 **i18n** — Chinese and English. Auto-detects Obsidian language setting.
 
+**Theme adaptive** — Automatically switches between dedicated light and dark palettes when the Obsidian theme changes, so the heatmap stays legible in any theme. Optionally generate the palette from your Obsidian accent color instead of the default greens.
+
+**Custom layout** — Choose the first day of the week (Sunday or Monday) and tune the day-cell size and gap to match your taste.
+
 ---
 
 ## Installation
@@ -69,6 +77,17 @@ For early access before official approval:
 | Target Field | Frontmatter field for modification dates | `last-modified` |
 | Created Field | Frontmatter field for creation dates | `created` |
 | Target Folder | Folder to track | *(empty - whole vault)* |
+
+### Appearance
+
+| Setting | Description | Default |
+|---------|-------------|---------|
+| Use theme accent color | Build the 5-level palette from your Obsidian accent color instead of the custom greens | off |
+| First day of week | Which day the week starts on | Sunday |
+| Cell size | Day-cell side length (px) | 10 |
+| Cell gap | Space between day cells (px) | 2 |
+
+When **Use theme accent color** is on, empty (no-edit) cells stay neutral grey and activity deepens toward your accent color. Palettes are defined separately for light and dark mode; switching the Obsidian theme re-renders the heatmap automatically.
 
 ### Supported Date Formats
 
@@ -107,6 +126,18 @@ Enable in settings after installing [Obsidian Git](https://github.com/denolehov/
 - **View month summary**: Click a month label
 - **Open yearly note**: Click the year number (requires yearly note enabled)
 - **Refresh**: Click the refresh button
+
+### Embed in a note
+
+This fork adds the ability to embed a heatmap directly inside any note using a code block. The `year` parameter is optional — omit it to show the current year:
+
+````markdown
+```note-heatmap
+year: 2026
+```
+````
+
+Embedded heatmaps stay in sync with the data cache and update automatically. Year navigation and day/month drill-down work exactly like in the standalone view.
 
 ---
 
@@ -167,6 +198,18 @@ Click a month label to see monthly activity statistics. Supports sorting by name
 
 After installing Obsidian Git, click the "View Diff" button to see version history in Version History Diff.
 
+### Light theme with accent palette
+
+![Light theme with accent palette](./assets/images/heatmap-light-accent-en.png)
+
+The 5-level palette is generated from your Obsidian accent color. Empty (no-edit) cells are neutral grey, activity deepens toward the accent.
+
+### Dark theme with default palette
+
+![Dark theme with default palette](./assets/images/heatmap-dark-default-en.png)
+
+In dark mode the plugin switches to a dedicated dark palette automatically (or a dark accent-based palette if enabled). The heatmap re-renders itself when you change the Obsidian theme.
+
 ---
 
 ## Development
@@ -187,6 +230,8 @@ src/                  # Source code
 ├── settings.ts       # Settings interface & defaults
 ├── settingTab.ts     # Settings UI
 ├── heatmapView.ts    # Heatmap view (main UI)
+├── heatmapRenderer.ts# Reusable heatmap renderer (view + embed)
+├── embed.ts          # Code-block processor (in-note embedding)
 ├── dataCache.ts      # Data cache (incremental updates)
 ├── gitService.ts     # Git service (via Obsidian Git API)
 ├── vhdUtils.ts       # Version History Diff utilities
@@ -194,8 +239,6 @@ src/                  # Source code
     ├── index.ts
     ├── en.ts
     └── zh.ts
-
-styles.css            # Plugin styles (auto-copied to vault)
 ```
 
 ---

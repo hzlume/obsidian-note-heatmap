@@ -1,15 +1,19 @@
 import { Plugin, WorkspaceLeaf } from "obsidian";
 import { HeatmapView, HEATMAP_VIEW_TYPE } from "./heatmapView";
+import { HeatmapRenderer } from "./heatmapRenderer";
 import { HeatmapSettingTab } from "./settingTab";
 import { DEFAULT_SETTINGS, HeatmapSettings } from "./settings";
 import { DataCache } from "./dataCache";
 import { GitService } from "./gitService";
+import { registerEmbedCodeblock, refreshEmbeddedHeatmaps } from "./embed";
 import { t } from "./i18n";
 
 export default class NoteHeatmapPlugin extends Plugin {
   settings: HeatmapSettings;
   dataCache: DataCache;
   gitService: GitService;
+  embeddedHeatmaps = new Set<HeatmapRenderer>();
+  accentColor: string | null = null;
 
   async onload(): Promise<void> {
     await this.loadSettings();
@@ -21,9 +25,22 @@ export default class NoteHeatmapPlugin extends Plugin {
     // 初始化 Git 服务
     this.gitService = new GitService(this);
 
+    // 注册 codeblock：встраивание тепловой карты в заметку
+    registerEmbedCodeblock(this);
+
+    // Читаем акцентный цвет как можно раньше: рендер может случиться раньше onLayoutReady,
+    // а без акцента палитра уйдёт в ненадёжные CSS-фолбэки (темы портят их чёрным)
+    void this.loadAccentColor().then(() => {
+      // Если какие-то карты уже отрендерились без акцента — перерисуем с правильной палитрой
+      this.refreshViews();
+    });
+
     // 等 Obsidian 完全准备好后再初始化缓存和检测依赖插件
     // 确保 metadataCache 已经解析完所有文件，其他插件已加载
     this.app.workspace.onLayoutReady(() => {
+      // accentColor уже читается в onload; здесь подстрахуемся повторным чтением
+      void this.loadAccentColor();
+
       // 检测依赖插件，如果都安装了则默认开启 git diff
       void this.checkAndAutoEnableGitDiff();
 
@@ -36,6 +53,13 @@ export default class NoteHeatmapPlugin extends Plugin {
     this.registerView(
       HEATMAP_VIEW_TYPE,
       (leaf) => new HeatmapView(leaf, this)
+    );
+
+    // Смена темы/оформления Obsidian: перерисовываем все карты, чтобы подхватить палитру
+    this.registerEvent(
+      this.app.workspace.on("css-change", () => {
+        this.refreshViews();
+      })
     );
 
     // 左侧 ribbon 图标
@@ -71,6 +95,25 @@ export default class NoteHeatmapPlugin extends Plugin {
 
   async loadSettings(): Promise<void> {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+  }
+
+  /**
+   * Читает акцентный цвет пользователя из .obsidian/appearance.json
+   * (поле accentColor) и сохраняет в this.accentColor.
+   */
+  async loadAccentColor(): Promise<void> {
+    try {
+      const adapter = this.app.vault.adapter;
+      const configDir = this.app.vault.configDir || ".obsidian";
+      const content = await adapter.read(`${configDir}/appearance.json`);
+      const data = JSON.parse(content) as { accentColor?: string };
+      if (data.accentColor) {
+        this.accentColor = data.accentColor;
+        console.debug("[NoteHeatmap] accentColor from appearance.json:", this.accentColor);
+      }
+    } catch (err) {
+      console.debug("[NoteHeatmap] Failed to read accent color:", err);
+    }
   }
 
   async saveSettings(): Promise<void> {
@@ -136,7 +179,7 @@ export default class NoteHeatmapPlugin extends Plugin {
   }
 
   /**
-   * 刷新所有热力图视图
+   * 刷新所有热力图视图（包括嵌入在笔记中的）
    */
   refreshViews(): void {
     const leaves = this.app.workspace.getLeavesOfType(HEATMAP_VIEW_TYPE);
@@ -146,6 +189,7 @@ export default class NoteHeatmapPlugin extends Plugin {
         view.render();
       }
     }
+    refreshEmbeddedHeatmaps(this);
   }
 
   /**

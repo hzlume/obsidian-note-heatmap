@@ -16,12 +16,34 @@ export const zh: Translations = {
       name: "目标文件夹",
       desc: "统计哪个文件夹下的笔记（相对于 vault 根目录）",
     },
+    weekStart: {
+      name: "每周起始日",
+      desc: "热力图中一周从星期几开始",
+      sunday: "星期日",
+      monday: "星期一",
+    },
+    cellSize: {
+      name: "单元格大小",
+      desc: "热力图中每个日期的单元格大小（像素）",
+    },
+    cellGap: {
+      name: "单元格间距",
+      desc: "日期单元格之间的间距（像素）",
+    },
   },
 
   // Settings - Colors
   colors: {
     title: "颜色配置",
     desc: "从左到右依次对应：无修改 / 1-3篇 / 4-7篇 / 8-12篇 / 13篇以上",
+    light: "浅色主题",
+    lightDesc: "浅色模式下使用的调色板。",
+    dark: "深色主题",
+    darkDesc: "深色模式下使用的调色板。Obsidian 切换主题时自动适配。",
+    accentToggle: {
+      name: "使用主题强调色",
+      desc: "根据 Obsidian 强调色自动生成 5 阶调色板，替代下方自定义颜色",
+    },
     labels: [
       "无修改（0篇）",
       "浅绿（1-3篇）",
@@ -120,7 +142,7 @@ export const zh: Translations = {
       new: "其中 {{count}} 篇为新增",
       outOfYear: "不在{{year}}年内",
     },
-    weekdays: ["日", "", "二", "", "四", "", "六"],
+    weekdays: ["日", "一", "二", "三", "四", "五", "六"],
     months: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
     periodicNote: {
       createFailed: "创建{{type}}笔记失败",

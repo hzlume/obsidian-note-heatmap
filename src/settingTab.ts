@@ -77,25 +77,108 @@ export class HeatmapSettingTab extends PluginSettingTab {
             await this.plugin.saveSettings();
           })
       );
+
+    new Setting(containerEl)
+      .setName(t("settings.weekStart.name"))
+      .setDesc(t("settings.weekStart.desc"))
+      .addDropdown(dropdown =>
+        dropdown
+          .addOption("0", t("settings.weekStart.sunday"))
+          .addOption("1", t("settings.weekStart.monday"))
+          .setValue(String(this.plugin.settings.weekStart))
+          .onChange(async (value) => {
+            this.plugin.settings.weekStart = parseInt(value, 10);
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName(t("settings.cellSize.name"))
+      .setDesc(t("settings.cellSize.desc"))
+      .addSlider(slider =>
+        slider
+          .setLimits(6, 16, 1)
+          .setValue(this.plugin.settings.boxSize)
+          .setDynamicTooltip()
+          .onChange(async (value) => {
+            this.plugin.settings.boxSize = value;
+            await this.plugin.saveSettings();
+          })
+      );
+
+    new Setting(containerEl)
+      .setName(t("settings.cellGap.name"))
+      .setDesc(t("settings.cellGap.desc"))
+      .addSlider(slider =>
+        slider
+          .setLimits(0, 6, 1)
+          .setValue(this.plugin.settings.boxGap)
+          .setDynamicTooltip()
+          .onChange(async (value) => {
+            this.plugin.settings.boxGap = value;
+            await this.plugin.saveSettings();
+          })
+      );
   }
 
   /** 颜色设置 */
   private renderColorSettings(containerEl: HTMLElement): void {
     new Setting(containerEl).setName(t("colors.title")).setHeading();
+
+    // 使用 Obsidian 强调色的开关
+    new Setting(containerEl)
+      .setName(t("colors.accentToggle.name"))
+      .setDesc(t("colors.accentToggle.desc"))
+      .addToggle(toggle =>
+        toggle
+          .setValue(this.plugin.settings.useAccentColors)
+          .onChange(async (value) => {
+            this.plugin.settings.useAccentColors = value;
+            await this.plugin.saveSettings();
+            this.display();
+          })
+      );
+
+    if (this.plugin.settings.useAccentColors) {
+      return;
+    }
+
     containerEl.createEl("p", {
       text: t("colors.desc"),
       cls: "setting-item-description",
     });
 
     const colorLabels = tArray("colors.labels");
+
+    containerEl.createEl("p", {
+      text: t("colors.lightDesc"),
+      cls: "setting-item-description",
+    });
     this.plugin.settings.colors.forEach((color, index) => {
       new Setting(containerEl)
-        .setName(`${t("colors.title")} ${index + 1}：${colorLabels[index]}`)
+        .setName(`${t("colors.light")} ${index + 1}：${colorLabels[index]}`)
         .addColorPicker(picker =>
           picker
             .setValue(color)
             .onChange(async (value) => {
               this.plugin.settings.colors[index] = value;
+              await this.plugin.saveSettings();
+            })
+        );
+    });
+
+    containerEl.createEl("p", {
+      text: t("colors.darkDesc"),
+      cls: "setting-item-description",
+    });
+    this.plugin.settings.colorsDark.forEach((color, index) => {
+      new Setting(containerEl)
+        .setName(`${t("colors.dark")} ${index + 1}：${colorLabels[index]}`)
+        .addColorPicker(picker =>
+          picker
+            .setValue(color)
+            .onChange(async (value) => {
+              this.plugin.settings.colorsDark[index] = value;
               await this.plugin.saveSettings();
             })
         );
